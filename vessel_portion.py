@@ -1,6 +1,8 @@
 import numpy as np
 import contour as Contour
 from constants import *
+from scipy.integrate import simps
+import math
 
 class VesselPortion:
     def __init__(self, xs = None, ys = None, zs = None):
@@ -127,3 +129,28 @@ class VesselPortion:
         if hasattr(self, "arclength"):
             print("arclength:")
             print(self.arclength)
+
+    # resistance and capacitance where taken from
+    # "Design of a 0D image-based coronary blood flow model" by Uus, Liatsis
+    def compute_R(self):
+        self.compute_mean_radius()
+        self.R = 128 * density * self.arclength[-1] / (math.pi * ((2 * self.mean_radius)**4))
+        print(self.R)
+        return self.R
+
+    def compute_C(self):
+        self.compute_mean_radius()
+        self.C = math.pi * (2 * self.mean_radius)**3) * self.arclength[-1] /
+                 (4 * E * thickness_ratio * (2 * self.mean_radius))
+        return 1
+
+    def compute_mean_radius(self):
+        if not hasattr(self,"mean_radius"):
+            posindices = np.where(self.radii > 0)
+            posradii = self.radii[posindices]
+            posarclength = self.arclength[posindices]
+            posarclength = np.subtract(posarclength, posarclength[0])
+            # we compute the mean radius using the integral over the arclength
+            integrated_radius = simps(posradii, posarclength)
+            area = simps(np.ones(posradii.shape),posarclength)
+            self.mean_radius = integrated_radius / area

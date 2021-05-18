@@ -36,9 +36,10 @@ def parse_single_path(namefile):
 
     path_points = tree[1][0][0][1]
     for child in path_points:
-        x = float(child[0].attrib['x'])
-        y = float(child[0].attrib['y'])
-        z = float(child[0].attrib['z'])
+        # units are in mm, but we use cgs system
+        x = float(child[0].attrib['x']) * 0.1
+        y = float(child[0].attrib['y']) * 0.1
+        z = float(child[0].attrib['z']) * 0.1
         xs.append(x)
         ys.append(y)
         zs.append(z)
@@ -54,18 +55,18 @@ def parse_single_segmentation(namefile, vessel):
     ncontours = len(tree[1][0]) - 1
     for icont in range(0, ncontours):
         curcontour = tree[1][0][icont+1]
-        x = float(curcontour[0][0].attrib['x'])
-        y = float(curcontour[0][0].attrib['y'])
-        z = float(curcontour[0][0].attrib['z'])
+        x = float(curcontour[0][0].attrib['x']) * 0.1
+        y = float(curcontour[0][0].attrib['y']) * 0.1
+        z = float(curcontour[0][0].attrib['z']) * 0.1
         id = int(curcontour[0].attrib['id'])
         control_point = np.array([x,y,z])
         curpoints = curcontour[2]
         ncurpoints = len(curpoints)
         contour = np.zeros([ncurpoints,3])
         for ipoint in range(0, ncurpoints):
-            contour[ipoint,0] = curpoints[ipoint].attrib['x']
-            contour[ipoint,1] = curpoints[ipoint].attrib['y']
-            contour[ipoint,2] = curpoints[ipoint].attrib['z']
+            contour[ipoint,0] = float(curpoints[ipoint].attrib['x']) * 0.1
+            contour[ipoint,1] = float(curpoints[ipoint].attrib['y']) * 0.1
+            contour[ipoint,2] = float(curpoints[ipoint].attrib['z']) * 0.1
 
         contours.append(Contour(control_point, contour, id))
 
