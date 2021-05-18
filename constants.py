@@ -7,4 +7,4 @@ density = 1.06
 # elastic modulus
 E = 2 * 10**5
 # vessel thickness ration w.r.t. diameter
-thickness_ration = 0.08
+thickness_ratio = 0.08
