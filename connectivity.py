@@ -6,7 +6,6 @@ from constants import *
 
 # we need to look for the position of the bifurcations
 def build_slices(portions):
-    fig, ax = create_fig()
     newportions = []
     bifurcations = find_bifurcations(portions)
     for portion in portions:
@@ -17,19 +16,9 @@ def build_slices(portions):
             bifurcations = np.vstack([bifurcations, joints])
 
     bifurcations = simplify_bifurcations(bifurcations)
-    bifurcations = simplify_bifurcations(bifurcations)
     bifurcations, connectivity = build_connectivity(newportions, bifurcations)
 
-    plot_vessel_portions(newportions, fig, ax)
-    for i in range(0, bifurcations.shape[0]):
-        if np.linalg.norm(connectivity[i,:]) > 0:
-            if (np.where(connectivity[i,:] == 2)[0].shape[0] == 1):
-                ax.scatter3D(bifurcations[i,0], bifurcations[i,1], bifurcations[i,2], color = 'red');
-            elif (np.where(connectivity[i,:] > 2)[0].shape[0] == 1):
-                ax.scatter3D(bifurcations[i,0], bifurcations[i,1], bifurcations[i,2], color = 'blue');
-            else:
-                ax.scatter3D(bifurcations[i,0], bifurcations[i,1], bifurcations[i,2], color = 'green');
-    plot_show()
+    return newportions, bifurcations, connectivity
 
 # code: 1 inlet node, -1 outlet node, 2 global input, 3,4,..., outlet nodes
 def build_connectivity(portions, bifurcations):

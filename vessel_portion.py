@@ -106,8 +106,6 @@ class VesselPortion:
                 joints = np.vstack([joints,self.coords[iarchlg - 1,:]])
         return self.break_at_indices(indicestobreak), joints
 
-
-
     def split(self, begin, end):
         newvessel = VesselPortion()
         newvessel.set_coords(self.coords[begin:end+1,:])
