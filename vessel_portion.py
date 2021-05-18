@@ -130,21 +130,25 @@ class VesselPortion:
             print("arclength:")
             print(self.arclength)
 
-    # resistance and capacitance where taken from
+    # resistance, capacitance, and inductance where taken from
     # "Design of a 0D image-based coronary blood flow model" by Uus, Liatsis
     def compute_R(self):
         self.compute_mean_radius()
-        self.R = float(128 * density * self.arclength[-1] / \
+        self.R = float(128 * viscosity * self.arclength[-1] / \
                  (math.pi * ((2 * self.mean_radius)**4)))
-        print(self.R)
         return self.R
 
     def compute_C(self):
         self.compute_mean_radius()
         self.C = float(math.pi * ((2 * self.mean_radius)**3) * self.arclength[-1] / \
                  (4 * E * thickness_ratio * (2 * self.mean_radius)))
-        print(self.C)
-        return
+        return self.C
+
+    def compute_L(self):
+        self.compute_mean_radius()
+        self.L = float(4 * density * self.arclength[-1] / \
+                 (math.pi * (2 * self.mean_radius)**2))
+        return self.L
 
     def compute_mean_radius(self):
         if not hasattr(self,"mean_radius"):

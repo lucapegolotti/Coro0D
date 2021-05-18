@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 
 # The constitutive equation is written in this form:
 #
@@ -24,4 +25,4 @@ class Windkessel2(Model):
         return np.array([self.C, -self.C, 0])
 
     def get_vector(self):
-        return np.array([-1/R, 1/R, 1])
+        return np.array([-1/self.R, 1/self.R, 1])

@@ -12,9 +12,8 @@ class PhysicalBlock:
 
 
 def create_physical_blocks(portions, model_type):
-
-    physical_block = []
+    physical_blocks = []
     for portion in portions:
-        physical_block += [PhysicalBlock(portion, model_type)]
+        physical_blocks += [PhysicalBlock(portion, model_type)]
 
-    return physical_block
+    return physical_blocks
