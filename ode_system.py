@@ -46,21 +46,19 @@ class ODESystem:
             # add one constraint for every couple
             indices = np.where(np.abs(connectivity) == 1)[0]
             nindices = indices.shape[0]
-
             for i in range(1, nindices):
-                if connectivity[indices[0]] == -1:
+                if connectivity[indices[0]] == 1:
                     # + 0 corresponds to inlet
                     smatrix[constraintrow, 3*indices[0] + 0] = 1
                 else:
                     # + 1 corresponds to outlet
                     smatrix[constraintrow, 3*indices[0] + 1] = 1
-                if connectivity[indices[i]] == -1:
+                if connectivity[indices[i]] == 1:
                     # + 0 corresponds to inlet
                     smatrix[constraintrow, 3*indices[i] + 0] = -1
                 else:
                     # + 1 corresponds to outlet
                     smatrix[constraintrow, 3*indices[i] + 1] = -1
                 constraintrow += 1
-
         # the boundary conditions (remaining rows) are applied in BDF
         return smatrix

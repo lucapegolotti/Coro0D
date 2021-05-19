@@ -13,9 +13,16 @@ def build_slices(portions):
         for curportion in curportions:
             slicedportions, joints = curportion.limit_length(maxlength)
             newportions += slicedportions
-            bifurcations = np.vstack([bifurcations, joints])
+            if bifurcations.shape[0] > 0:
+                bifurcations = np.vstack([bifurcations, joints])
+            else:
+                print('entering here')
+                print(joints)
+                bifurcations = joints
 
+    print(bifurcations)
     bifurcations = simplify_bifurcations(bifurcations)
+    print(bifurcations)
     bifurcations, connectivity = build_connectivity(newportions, bifurcations)
 
     return newportions, bifurcations, connectivity

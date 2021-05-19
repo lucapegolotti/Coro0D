@@ -17,7 +17,7 @@ def plot_vessel_portions(portions, bifurcations = None, connectivity = None, fig
         fig, ax = create_fig()
         show_plot = True
     n = len(portions)
-    random.shuffle(portions)
+    # random.shuffle(portions)
     color = iter(cm.turbo(np.linspace(0, 1 ,n)))
     for vessel in portions:
         c = next(color)

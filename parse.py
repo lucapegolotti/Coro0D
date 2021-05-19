@@ -9,13 +9,17 @@ from constants import *
 
 def parse_vessels(fdr):
     fullpaths = []
+    index = 0
     for filename in os.listdir(fdr + "Paths/"):
+        index = index + 1
         path = parse_single_path(fdr + "Paths/" + filename)
         filenamectgr = filename[0:-4] + ".ctgr"
         path = parse_single_segmentation(fdr + "Segmentations/" + filenamectgr, path)
         fullpaths.append(path)
 
     return fullpaths
+    # return list( fullpaths[i] for i in [0, 5] )
+
 
 def open_xml(namefile):
     with open(namefile) as f:

@@ -12,3 +12,5 @@ E = 2 * 10**5
 thickness_ratio = 0.08
 # use pressure at inlet
 inlet_pressure = True
+# timestep size
+deltat = 0.01
