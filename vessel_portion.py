@@ -1,6 +1,6 @@
 import numpy as np
 import contour as Contour
-from constants import *
+from problem_data import ProblemData
 from scipy.integrate import simps
 import math
 
@@ -42,9 +42,9 @@ class VesselPortion:
             if minindex != -1:
                 indicestobreak.append(minindex)
 
-        return self.break_at_indices(indicestobreak)
+        return self.break_at_indices(indicestobreak, tol)
 
-    def break_at_indices(self, indices):
+    def break_at_indices(self, indices, tol):
         ncoords = self.coords.shape[0]
         if len(indices) == 0:
             return [self]
@@ -86,7 +86,7 @@ class VesselPortion:
                     curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * (nextradius - self.radii[curid])
                     self.radii[jcoord] = curradius
 
-    def limit_length(self, length):
+    def limit_length(self, tol, length):
         narclengths = self.arclength.shape[0]
         caplength = length
         indicestobreak = []
@@ -106,7 +106,7 @@ class VesselPortion:
                 indicestobreak.append(iarchlg - 1)
                 caplength += totarclength / ndivisions
                 joints = np.vstack([joints,self.coords[iarchlg - 1,:]])
-        return self.break_at_indices(indicestobreak), joints
+        return self.break_at_indices(indicestobreak, tol), joints
 
     def split(self, begin, end):
         newvessel = VesselPortion()
@@ -132,19 +132,19 @@ class VesselPortion:
 
     # resistance, capacitance, and inductance where taken from
     # "Design of a 0D image-based coronary blood flow model" by Uus, Liatsis
-    def compute_R(self):
+    def compute_R(self, viscosity):
         self.compute_mean_radius()
         self.R = float(128 * viscosity * self.arclength[-1] / \
                  (math.pi * ((2 * self.mean_radius)**4)))
         return self.R
 
-    def compute_C(self):
+    def compute_C(self, E, thickness_ratio):
         self.compute_mean_radius()
         self.C = float(math.pi * ((2 * self.mean_radius)**3) * self.arclength[-1] / \
                  (4 * E * thickness_ratio * (2 * self.mean_radius)))
         return self.C
 
-    def compute_L(self):
+    def compute_L(self, density):
         self.compute_mean_radius()
         self.L = float(4 * density * self.arclength[-1] / \
                  (math.pi * (2 * self.mean_radius)**2))

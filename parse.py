@@ -5,7 +5,6 @@ from numpy import linalg
 import xml.etree.ElementTree as ET
 from vessel_portion import VesselPortion
 from contour import Contour
-from constants import *
 
 def parse_vessels(fdr):
     fullpaths = []

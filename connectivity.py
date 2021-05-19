@@ -2,16 +2,16 @@ from parse import *
 from plot_tools import *
 import numpy as np
 from numpy import linalg
-from constants import *
+from problem_data import ProblemData
 
 # we need to look for the position of the bifurcations
-def build_slices(portions):
+def build_slices(portions, tol, maxlength):
     newportions = []
-    bifurcations = find_bifurcations(portions)
+    bifurcations = find_bifurcations(portions, tol)
     for portion in portions:
         curportions = portion.break_at_points(bifurcations, tol)
         for curportion in curportions:
-            slicedportions, joints = curportion.limit_length(maxlength)
+            slicedportions, joints = curportion.limit_length(tol, maxlength)
             newportions += slicedportions
             if bifurcations.shape[0] > 0:
                 bifurcations = np.vstack([bifurcations, joints])
@@ -20,15 +20,13 @@ def build_slices(portions):
                 print(joints)
                 bifurcations = joints
 
-    print(bifurcations)
-    bifurcations = simplify_bifurcations(bifurcations)
-    print(bifurcations)
-    bifurcations, connectivity = build_connectivity(newportions, bifurcations)
+    bifurcations = simplify_bifurcations(bifurcations, tol)
+    bifurcations, connectivity = build_connectivity(newportions, bifurcations, tol)
 
     return newportions, bifurcations, connectivity
 
 # code: 1 inlet node, -1 outlet node, 2 global input, 3,4,..., outlet nodes
-def build_connectivity(portions, bifurcations):
+def build_connectivity(portions, bifurcations, tol):
     nportions = len(portions)
     nbifurcations = len(bifurcations)
 
@@ -66,7 +64,7 @@ def build_connectivity(portions, bifurcations):
 
     return bifurcations, connectivity
 
-def find_bifurcations(portions):
+def find_bifurcations(portions, tol):
     nportions = len(portions)
     joints = []
     for ipor in range(0,nportions):
@@ -85,9 +83,9 @@ def find_bifurcations(portions):
 
     joints = np.array(joints).squeeze()
 
-    return simplify_bifurcations(joints)
+    return simplify_bifurcations(joints, tol)
 
-def simplify_bifurcations(bifurcations):
+def simplify_bifurcations(bifurcations, tol):
     nbifurcations = bifurcations.shape[0]
 
     indices = list(range(0, nbifurcations))
