@@ -16,8 +16,6 @@ def build_slices(portions, tol, maxlength):
             if bifurcations.shape[0] > 0:
                 bifurcations = np.vstack([bifurcations, joints])
             else:
-                print('entering here')
-                print(joints)
                 bifurcations = joints
 
     bifurcations = simplify_bifurcations(bifurcations, tol)

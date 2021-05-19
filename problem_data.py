@@ -18,3 +18,5 @@ class ProblemData:
         self.deltat = 0.01
         # initial time
         self.t0 = 0.0
+        # final time
+        self.T = 10

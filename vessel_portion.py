@@ -150,6 +150,24 @@ class VesselPortion:
                  (math.pi * (2 * self.mean_radius)**2))
         return self.L
 
+    def compute_Ra(self):
+        return 0
+
+    def compute_Ramicro(self):
+        return 0
+
+    def compute_Rvmicro(self):
+        return 0
+
+    def compute_Rv(self):
+        return 0
+
+    def compute_Ca(self):
+        return 0
+
+    def compute_Cim(self):
+        return 0
+
     def compute_mean_radius(self):
         if not hasattr(self,"mean_radius"):
             posindices = np.where(self.radii > 0)
