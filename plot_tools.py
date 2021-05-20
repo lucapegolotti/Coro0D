@@ -69,19 +69,29 @@ def plot_bifurcations(bifurcations, connectivity, fig, ax):
             else:
                 ax.scatter3D(bifurcations[i,0], bifurcations[i,1], bifurcations[i,2], color = 'green');
 
-def plot_solution(solutions, times, portions, portion_index, variable_name):
+def plot_solution(solutions, times, t0, T, portions, portion_index, variable_name):
     fig = plt.figure(figsize=plt.figaspect(0.5))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
     plot_vessel_portions_highlight(portions, portion_index, fig = fig, ax = ax1)
+    ax1.set_yticklabels([])
+    ax1.set_xticklabels([])
+    ax1.set_zticklabels([])
+    scale = 1
     if variable_name == 'Pin':
         variable_index = 0
+        scale = 1 / 1333.2 # we convert the pressure back to mmHg
+        unit = ' [mmHg]'
     if variable_name == 'Pout':
         variable_index = 1
+        scale = 1 / 1333.2
+        unit = ' [mmHg]'
     if variable_name == 'Q':
         variable_index = 2
+        unit = ' [mL/s]'
     ax2 = fig.add_subplot(1, 2, 2)
-    ax2.plot(times, solutions[portion_index * 3 + variable_index,:])
-    ax2.set_title(variable_name + ", portion :" + str(portion_index))
+    ax2.plot(times, solutions[portion_index * 3 + variable_index,:] * scale)
+    ax2.set_title(variable_name + ", portion: " + str(portion_index))
     ax2.set_xlabel("time [s]")
-    ax2.set_ylabel(variable_name)
-    plot_show()
+    ax2.set_ylabel(variable_name + unit)
+    ax2.set_xlim([t0, T])
+    return fig, ax1, ax2

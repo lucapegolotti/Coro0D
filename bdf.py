@@ -12,11 +12,12 @@ class BDF1:
         self.deltat = problem_data.deltat
         self.t0 = problem_data.t0
         self.T = problem_data.T
+        self.t0ramp = problem_data.t0ramp
         self.bc_manager = bc_manager
         self.setup_system()
 
     def run(self):
-        t = self.t0
+        t = self.t0ramp
         times = [t]
         syssize = self.bdfmatrix.shape[0]
         sols = [np.zeros([syssize,1])]

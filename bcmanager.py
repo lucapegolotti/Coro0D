@@ -1,14 +1,15 @@
 from inletbc import InletBC
 from outletbc import OutletBC
 import numpy as np
-import math
 
 class BCManager:
-    def __init__(self, portions, connectivity, inletbc_type, outletbc_type):
+    def __init__(self, portions, connectivity, inletbc_type, outletbc_type, folder, problem_data):
         self.portions = portions
         self.connectivity = connectivity
         self.inletbc_type = inletbc_type
         self.outletbc_type = outletbc_type
+        self.folder = folder
+        self.problem_data = problem_data
         self.create_bcs()
 
     # we set the row where the boundary conditions start in matrices and vectors
@@ -19,8 +20,10 @@ class BCManager:
         # get index of inlet block
         self.inletindex = int(np.where(self.connectivity == 2)[1])
         print(self.inletindex)
-        self.inletbc = InletBC(self.portions[self.inletindex], \
-                               self.inletindex, self.inletbc_type)
+        self.inletbc = InletBC(self.portions[self.inletindex],
+                               self.inletindex, self.inletbc_type,
+                               self.folder,
+                               self.problem_data)
 
         # find max outlet flag
         maxoutletflag = int(np.max(self.connectivity))
@@ -58,4 +61,4 @@ class BCManager:
             curcol += self.outletbcs[ibc].nvariables
 
     def apply_bc_vector(self, vector, time):
-        vector[self.starting_row] = math.sin(time)
+        self.inletbc.apply_bc_vector(vector, time, self.starting_row)

@@ -15,8 +15,10 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.01
+        self.deltat = 0.005
         # initial time
         self.t0 = 0.0
         # final time
-        self.T = 10
+        self.T = 5.0
+        # ramp rime
+        self.t0ramp = -2.0
