@@ -25,7 +25,7 @@ class BDF1:
         while t < self.T:
             t = t + self.deltat
 
-            print('Solving t = ' + str(t))
+            print('Solving t = ' + "{:.2f}".format(t) + " s")
 
             # assemble rhs
             rhs = self.matrix_dot.dot(sols[-1])

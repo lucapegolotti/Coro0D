@@ -113,11 +113,14 @@ def show_animation(solutions, times, portions, variable_name, resample):
 
     variables = solutions[:3*nportions,::resample]
     if variable_name == 'Pin':
-        selectvariables = solutions[0::3,:]
+        selectvariables = solutions[0::3,:] / 1333.2
+        units = ' [mmHg]'
     elif variable_name == 'Pout':
-        selectvariables = solutions[1::3,:]
+        selectvariables = solutions[1::3,:] / 1333.2
+        units = ' [mmHg]'
     elif variable_name == 'Q':
         selectvariables = solutions[2::3,:]
+        units = ' [mL/s]'
 
     minv = np.min(selectvariables)
     maxv = np.max(selectvariables)
@@ -125,47 +128,22 @@ def show_animation(solutions, times, portions, variable_name, resample):
     def update(num, ax, times, selectvariables, lines, minv, maxc, timestamp):
         nlines = len(lines)
         for i in range(0, nlines):
-            lines[i][0].set_color(cm.turbo((selectvariables[i,num] - minv)/(maxv - minv)))
+            lines[i][0].set_color(cm.jet((selectvariables[i,num] - minv)/(maxv - minv)))
         timestamp.set_text('t = ' + "{:.2f}".format(times[num]) + " s")
 
     N = times.shape[0]
 
     lines = plot_vessel_portions(portions, fig = fig, ax = ax, color = 'black')
     timestamp = ax.text2D(0.05, 0.95, 't = ' + "{:.2f}".format(times[0]) + " s", transform=ax.transAxes)
-    ax.set_xlabel('x')
+    # trick to display the colorbar
+    p = ax.scatter([],[],[],c = [], cmap=plt.cm.jet)
+    p.set_clim(minv, maxv)
 
-    ani = animation.FuncAnimation(fig, update, N, fargs=(ax, times, selectvariables, lines, minv, maxv, timestamp), interval = 10, blit=False)
-    #ani.save('matplot003.gif', writer='imagemagick')
-    plt.show()
-
-# def show_animation(solutions, times, portions, variable_name):
-#     nportions = len(portions)
-#     fig = plt.figure()
-#     ax = plt.axes(projection='3d')
-#     lines = []
-#     for i in range(0, nportions):
-#         lines.append(ax.plot3D([], [], [], lw=2, color = 'black')[0])
-#
-#     # initialization function: plot the background of each frame
-#     def init():
-#         for i in range(0, nportions):
-#             print(lines[i])
-#             lines[i].set_data([], [], [])
-#         return lines
-#
-#     color = iter(cm.turbo(np.linspace(0, 1, nportions)))
-#     # animation function.  This is called sequentially
-#     def animate(i):
-#         for i in range(0, nportions):
-#             c = next(color)
-#             lines[i].set_data(portions[i].coords[:,0],
-#                               portions[i].coords[:,1],
-#                               portions[i].coords[:,2])
-#             lines[i].set_color(next(color))
-#         return line,
-#
-#     # call the animator.  blit=True means only re-draw the parts that have changed.
-#     anim = animation.FuncAnimation(fig, animate, init_func=init,
-#                                    frames=200, interval=20, blit=True)
-#
-#     anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    cbar = fig.colorbar(p, ax=ax, shrink = 0.7)
+    cbar.set_label(variable_name + units, rotation=270)
+    anim = animation.FuncAnimation(fig, update, N,
+                                   fargs=(ax, times, selectvariables, lines, minv, maxv, timestamp),
+                                   interval = 10,
+                                   blit=False)
+    plot_show()
+    # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
