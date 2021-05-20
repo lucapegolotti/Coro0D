@@ -104,10 +104,15 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     ax2.set_xlim([t0, T])
     return fig, ax1, ax2
 
-def show_animation(solutions, times, portions, variable_name, resample):
+def show_animation(solutions, times, t0, portions, variable_name, resample):
     nportions = len(portions)
     fig = plt.figure()
     ax = p3.Axes3D(fig)
+
+    # we keep only the solutions from t0 on
+    indices = np.where(times >= t0)[0]
+    times = times[indices]
+    solutions = solutions[0:nportions*3,indices]
 
     times = times[::resample]
 
@@ -124,7 +129,8 @@ def show_animation(solutions, times, portions, variable_name, resample):
 
     minv = np.min(selectvariables)
     maxv = np.max(selectvariables)
-
+    print(np.where(selectvariables== maxv)[0])
+    print(np.where(selectvariables== maxv)[1])
     def update(num, ax, times, selectvariables, lines, minv, maxc, timestamp):
         nlines = len(lines)
         for i in range(0, nlines):

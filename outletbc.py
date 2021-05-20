@@ -35,7 +35,8 @@ class OutletBC:
             matrix[row + 1, col + 3] = 1 / (Ramicro * Cim)
             matrix[row + 1, col + 4] = -1 / (Cim) * (1 / Ramicro + 1/(Rvmicro + Rv))
         elif self.bc_type == "resistance":
-            Ra = self.portion.compute_Ra()
+            Ra = self.portion.compute_Ra() + self.portion.compute_Rv() + \
+                 self.portion.compute_Ramicro() + self.portion.compute_Rvmicro()
         else:
             raise NotImplementedError(self.bc_type + " bc not implemented")
 

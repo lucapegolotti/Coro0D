@@ -61,6 +61,15 @@ class VesselPortion:
             previndex = index
         return portions
 
+    def compute_area_outlet(self):
+        # find last non zero radius
+        index = np.where(self.radii > 0)[0][-1]
+        return math.pi * self.radii[index]**2
+
+    def set_total_outlet_resistance(self, resistance):
+        print(resistance)
+        self.total_outlet_resistance = resistance
+
     # Note: this function should only be called when the path_ids still correspond
     # to the indices of the coordinates! Namely, the vessel must have been just
     # read from file.
@@ -151,16 +160,16 @@ class VesselPortion:
         return self.L
 
     def compute_Ra(self):
-        return 0
+        return 0.32 * self.total_outlet_resistance
 
     def compute_Ramicro(self):
-        return 0
+        return 0.52 * self.total_outlet_resistance
 
     def compute_Rvmicro(self):
         return 0
 
     def compute_Rv(self):
-        return 0
+        return 0.16 * self.total_outlet_resistance
 
     def compute_Ca(self):
         return 0
