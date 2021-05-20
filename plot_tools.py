@@ -104,10 +104,14 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     ax2.set_xlim([t0, T])
     return fig, ax1, ax2
 
-def show_animation(solutions, times, t0, portions, variable_name, resample):
+def show_animation(solutions, times, t0, portions, variable_name, resample, inlet_index = None):
     nportions = len(portions)
-    fig = plt.figure()
-    ax = p3.Axes3D(fig)
+    if inlet_index == None:
+        fig = plt.figure()
+        ax1 = p3.Axes3D(fig)
+    else:
+        fig = plt.figure(figsize=plt.figaspect(0.5))
+        ax1 = fig.add_subplot(1, 2, 1, projection='3d')
 
     # we keep only the solutions from t0 on
     indices = np.where(times >= t0)[0]
@@ -118,38 +122,75 @@ def show_animation(solutions, times, t0, portions, variable_name, resample):
 
     variables = solutions[:3*nportions,::resample]
     if variable_name == 'Pin':
-        selectvariables = solutions[0::3,:] / 1333.2
+        selectvariables = variables[0::3,:] / 1333.2
         units = ' [mmHg]'
     elif variable_name == 'Pout':
-        selectvariables = solutions[1::3,:] / 1333.2
+        selectvariables = variables[1::3,:] / 1333.2
         units = ' [mmHg]'
     elif variable_name == 'Q':
-        selectvariables = solutions[2::3,:]
+        selectvariables = variables[2::3,:]
         units = ' [mL/s]'
 
     minv = np.min(selectvariables)
     maxv = np.max(selectvariables)
-    print(np.where(selectvariables== maxv)[0])
-    print(np.where(selectvariables== maxv)[1])
+
     def update(num, ax, times, selectvariables, lines, minv, maxc, timestamp):
         nlines = len(lines)
         for i in range(0, nlines):
             lines[i][0].set_color(cm.jet((selectvariables[i,num] - minv)/(maxv - minv)))
         timestamp.set_text('t = ' + "{:.2f}".format(times[num]) + " s")
 
+    def update_dual(num, ax, times, selectvariables, lines, minv, maxc, timestamp, dot, inflow):
+        nlines = len(lines)
+        for i in range(0, nlines):
+            lines[i][0].set_color(cm.jet((selectvariables[i,num] - minv)/(maxv - minv)))
+        timestamp.set_text('t = ' + "{:.2f}".format(times[num]) + " s")
+
+        dot.set_data(times[num],inflow[num])
+
     N = times.shape[0]
 
-    lines = plot_vessel_portions(portions, fig = fig, ax = ax, color = 'black')
-    timestamp = ax.text2D(0.05, 0.95, 't = ' + "{:.2f}".format(times[0]) + " s", transform=ax.transAxes)
+    lines = plot_vessel_portions(portions, fig = fig, ax = ax1, color = 'black')
+    timestamp = ax1.text2D(0.05, 0.95, 't = ' + "{:.2f}".format(times[0]) + " s", transform=ax1.transAxes)
     # trick to display the colorbar
-    p = ax.scatter([],[],[],c = [], cmap=plt.cm.jet)
+    p = ax1.scatter([],[],[],c = [], cmap=plt.cm.jet)
     p.set_clim(minv, maxv)
 
-    cbar = fig.colorbar(p, ax=ax, shrink = 0.7)
-    cbar.set_label(variable_name + units, rotation=270)
-    anim = animation.FuncAnimation(fig, update, N,
-                                   fargs=(ax, times, selectvariables, lines, minv, maxv, timestamp),
-                                   interval = 10,
-                                   blit=False)
+    ax1.set_yticklabels([])
+    ax1.set_xticklabels([])
+    ax1.set_zticklabels([])
+
+    cbaxes = fig.add_axes([0.01, 0.2, 0.015, 0.6])
+    cbar = fig.colorbar(p, cax=cbaxes, shrink = 0.7)
+    cbar.set_label(variable_name + units, rotation=90, labelpad = 20)
+
+    if inlet_index == None:
+        anim = animation.FuncAnimation(fig, update, N,
+                                       fargs=(ax1,
+                                              times,
+                                              selectvariables,
+                                              lines,
+                                              minv,
+                                              maxv,
+                                              timestamp),
+                                       interval = 10,
+                                       blit=False)
+    else:
+        ax2 = fig.add_subplot(1, 2, 2)
+        ax2.plot(times, solutions[inlet_index * 3 + 0,::resample] / 1333.2)
+        ax2.set_xlim([times[0], times[-1]])
+        ax2.set_xlabel('t [s]')
+        ax2.set_ylabel('Pin [mmHg]')
+        dot, = ax2.plot(times[0], solutions[inlet_index * 3 + 0,0] / 1333.2,'ro')
+        anim = animation.FuncAnimation(fig, update_dual, N,
+                                       fargs=(ax1, times,
+                                              selectvariables,
+                                              lines, minv,
+                                              maxv, timestamp,
+                                              dot,
+                                              solutions[inlet_index * 3 + 0,::resample] / 1333.2),
+                                       interval = 10,
+                                       blit=False)
+
     plot_show()
     # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])

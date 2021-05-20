@@ -61,5 +61,4 @@ class InletBC:
     def inlet_function(self, time):
         if time < self.problem_data.t0:
             return self.evaluate_ramp(time)
-
         return interpolate.splev(time, self.pressurespline, der=0)

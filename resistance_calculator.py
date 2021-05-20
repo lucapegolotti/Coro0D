@@ -7,9 +7,10 @@ class ResistanceCalculator:
         self.compute_total_resistance()
 
     def compute_total_resistance(self):
+        # cardiac output in ml/s
         co = open(self.folder + "/Data/cardiac_output.txt", "r")
-        Q = float(co.readline())
-
+        Q = float(co.readline()) * 1000 / 60
+        # average pressure in dyn/cm^2
         map = open(self.folder + "/Data/mean_aortic_pressure.txt", "r")
         mean_Pa = float(map.readline()) * 1333.2
 
@@ -33,8 +34,6 @@ class ResistanceCalculator:
         for flag in range(3, maxoutletflag + 1):
             portionindex = int(np.where(connectivity == flag)[1])
             curarea = portions[portionindex].compute_area_outlet()
-            print(suma)
-            print(curarea)
             suma += np.sqrt(curarea) ** m
 
         for flag in range(3, maxoutletflag + 1):

@@ -185,5 +185,5 @@ class VesselPortion:
             posarclength = np.subtract(posarclength, posarclength[0])
             # we compute the mean radius using the integral over the arclength
             integrated_radius = simps(posradii, posarclength)
-            area = simps(np.ones(posradii.shape),posarclength)
-            self.mean_radius = integrated_radius / area
+            # area = simps(np.ones(posradii.shape),posarclength)
+            self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])# area

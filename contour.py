@@ -19,9 +19,9 @@ class Contour:
         # we calculate the area using this formula
         # https://math.stackexchange.com/questions/3207981/caculate-area-of-polygon-in-3d
         for icont in range(0, npoints - 1):
-            crossp += np.cross(contour[icont,:],contour[icont+1,:])
+            crossp += np.cross(contour[icont,:]-center,contour[icont+1,:]-center)
 
-        crossp += np.cross(contour[-1,:],contour[0,:])
+        crossp += np.cross(contour[-1,:]-center,contour[0,:]-center)
         crossp *= 0.5
         area = np.linalg.norm(crossp)
 
