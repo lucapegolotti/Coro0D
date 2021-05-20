@@ -12,8 +12,9 @@ class ODESystem:
 
         self.smatrix_dot = self.assemble_system_matrix_dot()
         self.smatrix = self.assemble_system_matrix()
-        bc_manager.add_bcs_dot(self.smatrix_dot, self.rowbcs)
-        bc_manager.add_bcs(self.smatrix, self.rowbcs)
+        bc_manager.set_starting_row_bcs(self.rowbcs)
+        bc_manager.add_bcs_dot(self.smatrix_dot)
+        bc_manager.add_bcs(self.smatrix)
 
     def assemble_system_matrix_dot(self):
         nblocks = len(self.blocks)

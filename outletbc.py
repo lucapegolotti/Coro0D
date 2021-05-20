@@ -46,8 +46,8 @@ class OutletBC:
         matrix[row + 2, col + 2] = -Ra
         matrix[row + 2, col + 3] = -1
 
-        # pd must be assigned
-        matrix[row + 3, col + 1] = 1
+        # pd must be assigned (-1 because we are going to put +pd in the vector with the data)
+        matrix[row + 3, col + 1] = -1
 
         # continuity of pressure with neighboring portion
         matrix[row + 4, col + 0] = 1

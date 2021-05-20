@@ -1,6 +1,7 @@
 from inletbc import InletBC
 from outletbc import OutletBC
 import numpy as np
+import math
 
 class BCManager:
     def __init__(self, portions, connectivity, inletbc_type, outletbc_type):
@@ -9,6 +10,10 @@ class BCManager:
         self.inletbc_type = inletbc_type
         self.outletbc_type = outletbc_type
         self.create_bcs()
+
+    # we set the row where the boundary conditions start in matrices and vectors
+    def set_starting_row_bcs(self, row):
+        self.starting_row = row
 
     def create_bcs(self):
         # get index of inlet block
@@ -28,11 +33,11 @@ class BCManager:
         self.noutlets = len(self.outletbcs)
 
     # rowbcs is the first index of the boundary conditions
-    def add_bcs_dot(self, matrix_dot, rowbcs):
-        self.inletbc.apply_bc_matrix_dot(matrix_dot, rowbcs)
+    def add_bcs_dot(self, matrix_dot):
+        self.inletbc.apply_bc_matrix_dot(matrix_dot, self.starting_row)
 
         curcol = len(self.portions) * 3
-        currow = rowbcs + 1
+        currow = self.starting_row + 1
         for ibc in range(0, len(self.outletbcs)):
             currow += self.outletbcs[ibc].apply_bc_matrix_dot(matrix_dot,
                                                               currow,
@@ -40,14 +45,17 @@ class BCManager:
             curcol += self.outletbcs[ibc].nvariables
 
     # rowbcs is the first index of the boundary conditions
-    def add_bcs(self, matrix_dot, rowbcs):
-        self.inletbc.apply_bc_matrix(matrix_dot, rowbcs)
+    def add_bcs(self, matrix_dot):
+        self.inletbc.apply_bc_matrix(matrix_dot, self.starting_row)
 
         curcol = len(self.portions) * 3
-        currow = rowbcs + 1
+        currow = self.starting_row + 1
         for ibc in range(0, len(self.outletbcs)):
             currow += self.outletbcs[ibc].apply_bc_matrix(matrix_dot,
                                                           currow,
                                                           curcol)
 
             curcol += self.outletbcs[ibc].nvariables
+
+    def apply_bc_vector(self, vector, time):
+        vector[self.starting_row] = math.sin(time)

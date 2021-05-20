@@ -17,8 +17,10 @@ def main():
                           inletbc_type = "pressure", \
                           outletbc_type = "resistance")
     ode_system = ODESystem(blocks, connectivity, bcmanager)
-    bdf = BDF1(ode_system, connectivity, pd)
+    bdf = BDF1(ode_system, connectivity, pd, bcmanager)
     plot_vessel_portions(chunks, bifurcations, connectivity)
+    solutions, times = bdf.run()
+    plot_solution(solutions, times, chunks, 3, 'Pin')
 
 if __name__ == "__main__":
     main()
