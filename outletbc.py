@@ -1,11 +1,12 @@
 from vessel_portion import VesselPortion
 
 class OutletBC:
-    def __init__(self, portion, index, bc_type):
+    def __init__(self, portion, index, bc_type, distal_pressure_generator):
         self.portion = portion
         self.portionindex = index
         self.bc_type = bc_type
         self.nvariables = 5
+        self.distal_pressure_generator = distal_pressure_generator
 
 
     # the variables are ordered as follows: p0, pd, Q, K1,K2, where K1 and K2
@@ -58,4 +59,8 @@ class OutletBC:
         matrix[row + 5, col + 2] = 1
         matrix[row + 5, self.portionindex * 3 + 2] = -1
 
+        return 6
+
+    def apply_bc_vector(self, vector, time, row):
+        vector[row + 3] = self.distal_pressure_generator.distal_pressure(time)
         return 6

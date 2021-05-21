@@ -1,0 +1,73 @@
+import csv
+import math
+import numpy as np
+from scipy import interpolate
+from scipy.interpolate import splev, splrep
+
+class DistalPressureGenerator:
+    def __init__(self, times, indexminima, folder, problem_data, coronary):
+        self.times = times
+        self.indexminima = indexminima
+        self.file = folder + "/Data/plv.dat"
+        self.problem_data = problem_data
+        if coronary == "left":
+            self.coeff = 1.5
+        if coronary == "right":
+            self.coeff = 0.5
+        self.parse_myocardial_pressure()
+        self.build_myocardial_pressure()
+
+    def parse_myocardial_pressure(self):
+        self.myopressure_original = []
+        self.times_original = []
+        with open(self.file, newline='') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter='\t')
+            for row in spamreader:
+                try:
+                    self.times_original.append(float(row[0]))
+                    self.myopressure_original.append(float(row[1]) * self.coeff)
+                except Exception:
+                    pass
+
+        self.times_original = np.array(self.times_original)
+        self.myopressure_original = np.array(self.myopressure_original)
+        self.myopressurespline_original = interpolate.splrep(self.times_original,
+                                                             self.myopressure_original)
+
+    def build_myocardial_pressure(self):
+        mm = self.indexminima
+        self.myopressure = np.zeros(self.times.shape)
+        nperiods = mm.shape[0] - 1
+        print(self.times.shape)
+        original_period = self.times_original[-1] - self.times_original[0]
+
+        for iperiod in range(0, nperiods):
+            period = self.times[mm[iperiod+1]] - self.times[mm[iperiod]]
+            for index in range(mm[iperiod],mm[iperiod+1]):
+                # we scale the current time to be in the original period
+                scaledtime = self.times_original[0] + (self.times[index] - self.times[mm[iperiod]]) / \
+                             (self.times[mm[iperiod+1]] - self.times[mm[iperiod]]) * original_period
+                print(scaledtime)
+                self.myopressure[index] = interpolate.splev(scaledtime, self.myopressurespline_original, der=0)
+
+        # # check how the myocardial pressure we built looks like
+        # import matplotlib.pyplot as plt
+        # fig = plt.figure()
+        # ax = plt.axes()
+        # ax.plot(self.times, self.myopressure)
+        # ax.set_xlim(0,15)
+        # plt.show()
+
+        self.myopressurespline = interpolate.splrep(self.times,
+                                                    self.myopressure)
+
+    def evaluate_ramp(self, time):
+        t0ramp = self.problem_data.t0ramp
+        t0 = self.problem_data.t0
+        target = interpolate.splev(t0, self.myopressurespline, der=0)
+        return target * (1.0 - math.cos((time - t0ramp) * math.pi / (t0 - t0ramp))) / 2.0
+
+    def distal_pressure(self, time):
+        if time < self.problem_data.t0:
+            return self.evaluate_ramp(time)
+        return interpolate.splev(time, self.myopressurespline, der=0)

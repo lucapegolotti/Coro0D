@@ -19,6 +19,6 @@ class ProblemData:
         # initial time
         self.t0 = 0.0
         # final time
-        self.T = 15
+        self.T = 10
         # ramp rime
         self.t0ramp = -2.0

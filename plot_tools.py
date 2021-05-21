@@ -113,6 +113,9 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
         fig = plt.figure(figsize=plt.figaspect(0.5))
         ax1 = fig.add_subplot(1, 2, 1, projection='3d')
 
+    ax1.grid(False)
+    ax1.axis('off')
+
     # we keep only the solutions from t0 on
     indices = np.where(times >= t0)[0]
     times = times[indices]

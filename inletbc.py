@@ -4,6 +4,7 @@ import math
 import numpy as np
 from scipy import interpolate
 from scipy.interpolate import splev, splrep
+from scipy.signal import savgol_filter
 
 class InletBC:
     def __init__(self, portion, index, bc_type, folder, problem_data):
@@ -33,8 +34,31 @@ class InletBC:
 
             self.times.pop(0)
 
+            self.pressure_values = np.array(self.pressure_values)
+            self.times = np.array(self.times)
+
+            # we find the local minima. First we apply a filter
+
+            filtered_pressures = savgol_filter(self.pressure_values, 13, 2)
+            minima = np.r_[True, filtered_pressures[1:] < filtered_pressures[:-1]] & \
+                     np.r_[filtered_pressures[:-1] < filtered_pressures[1:], True]
+            minima = np.where(minima == True)[0]
+
+            # # this is to check that the minima are visually correct
+            # import matplotlib.pyplot as plt
+            # fig = plt.figure()
+            # ax = plt.axes()
+            # ax.plot(self.times, self.pressure_values)
+            # ax.plot(self.times[minima], self.pressure_values[minima],'ro')
+            # plt.xlim([0, 3])
+            # plt.show()
+
+            self.pressure_values = self.pressure_values[minima[0]:]
+            self.times = np.subtract(self.times[minima[0]:],self.times[minima[0]])
+
             self.pressurespline = interpolate.splrep(np.array(self.times),
                                                      np.array(self.pressure_values))
+            self.indices_minpressures = np.subtract(minima, minima[0])
         else:
             raise NotImplementedError("Inlet flowrate case not implemented")
 

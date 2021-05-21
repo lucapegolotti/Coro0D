@@ -24,17 +24,18 @@ def main():
                           inletbc_type = "pressure",
                           outletbc_type = "coronary",
                           folder = fdr,
-                          problem_data = pd)
+                          problem_data = pd,
+                          coronary = coronary)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF1(ode_system, connectivity, pd, bcmanager)
     # plot_vessel_portions(chunks, bifurcations, connectivity)
     solutions, times = bdf.run()
-    fig, ax1, ax2 = plot_solution(solutions, times, pd.t0, pd.T, chunks, 15, 'Pout')
+    fig, ax1, ax2 = plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
     # ax2.plot(bcmanager.inletbc.times,
     #          np.array(bcmanager.inletbc.pressure_values) / 1333.2,
     #          color = 'red',
     #          linestyle='dashed')
-    show_animation(solutions, times, pd.t0, chunks, 'Pin', resample = 4,
+    show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
     # check total flow / min
