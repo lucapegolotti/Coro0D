@@ -12,8 +12,8 @@ from scipy.integrate import simps
 
 def main():
     pd = ProblemData()
-    coronary = "left"
-    fdr = "examples/CoronaryP1/"
+    coronary = "right"
+    fdr = "examples/CoronaryP5/"
     paths = parse_vessels(fdr)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
     rc = RCCalculator(fdr, coronary)
@@ -35,7 +35,7 @@ def main():
     #          np.array(bcmanager.inletbc.pressure_values) / 1333.2,
     #          color = 'red',
     #          linestyle='dashed')
-    show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
+    show_animation(solutions, times, pd.t0, chunks, 'Pin', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
     # check total flow / min
