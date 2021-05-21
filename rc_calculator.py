@@ -1,10 +1,14 @@
 import numpy as np
 
-class ResistanceCalculator:
+class RCCalculator:
     def __init__(self, folder, coronary):
         self.folder = folder
         self.coronary = coronary
         self.compute_total_resistance()
+        if self.coronary == "left":
+            self.total_capacitance = 3.6 * 1e-5
+        else:
+            self.total_capacitance = 2.5 * 1e-5
 
     def compute_total_resistance(self):
         # cardiac output in ml/s
@@ -41,3 +45,18 @@ class ResistanceCalculator:
             curarea = portions[portionindex].compute_area_outlet()
             curresistance = suma / (np.sqrt(curarea) ** m) * self.total_resistance
             portions[portionindex].set_total_outlet_resistance(curresistance)
+
+    def assign_capacitances_to_outlets(self, portions, connectivity):
+        maxoutletflag = int(np.max(connectivity))
+
+        suma = 0
+        for flag in range(3, maxoutletflag + 1):
+            portionindex = int(np.where(connectivity == flag)[1])
+            curarea = portions[portionindex].compute_area_outlet()
+            suma += curarea
+
+        for flag in range(3, maxoutletflag + 1):
+            portionindex = int(np.where(connectivity == flag)[1])
+            curarea = portions[portionindex].compute_area_outlet()
+            curresistance = curarea / suma * self.total_capacitance
+            portions[portionindex].set_total_outlet_capacitance(curresistance)

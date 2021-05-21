@@ -67,8 +67,10 @@ class VesselPortion:
         return math.pi * self.radii[index]**2
 
     def set_total_outlet_resistance(self, resistance):
-        print(resistance)
         self.total_outlet_resistance = resistance
+
+    def set_total_outlet_capacitance(self, capacitance):
+        self.total_outlet_capacitance = capacitance
 
     # Note: this function should only be called when the path_ids still correspond
     # to the indices of the coordinates! Namely, the vessel must have been just
@@ -172,10 +174,10 @@ class VesselPortion:
         return 0.16 * self.total_outlet_resistance
 
     def compute_Ca(self):
-        return 0
+        return 0.11 * self.total_outlet_capacitance
 
     def compute_Cim(self):
-        return 0
+        return 0.89 * self.total_outlet_capacitance
 
     def compute_mean_radius(self):
         if not hasattr(self,"mean_radius"):
