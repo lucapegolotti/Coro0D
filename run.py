@@ -25,7 +25,8 @@ def main():
                           outletbc_type = "coronary",
                           folder = fdr,
                           problem_data = pd,
-                          coronary = coronary)
+                          coronary = coronary,
+                          distal_pressure_coeff = 1.0)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF1(ode_system, connectivity, pd, bcmanager)
     # plot_vessel_portions(chunks, bifurcations, connectivity)
@@ -35,7 +36,7 @@ def main():
     #          np.array(bcmanager.inletbc.pressure_values) / 1333.2,
     #          color = 'red',
     #          linestyle='dashed')
-    show_animation(solutions, times, pd.t0, chunks, 'Pin', resample = 4,
+    show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
     # check total flow / min

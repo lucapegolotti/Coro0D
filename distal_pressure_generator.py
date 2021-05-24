@@ -5,15 +5,15 @@ from scipy import interpolate
 from scipy.interpolate import splev, splrep
 
 class DistalPressureGenerator:
-    def __init__(self, times, indexminima, folder, problem_data, coronary):
+    def __init__(self, times, indexminima, folder, problem_data, coronary, coeff):
         self.times = times
         self.indexminima = indexminima
         self.file = folder + "/Data/plv.dat"
         self.problem_data = problem_data
         if coronary == "left":
-            self.coeff = 1.5
+            self.coeff = 1.5 * coeff
         if coronary == "right":
-            self.coeff = 0.5
+            self.coeff = 0.5 * coeff
         self.parse_myocardial_pressure()
         self.build_myocardial_pressure()
 
@@ -38,7 +38,6 @@ class DistalPressureGenerator:
         mm = self.indexminima
         self.myopressure = np.zeros(self.times.shape)
         nperiods = mm.shape[0] - 1
-        print(self.times.shape)
         original_period = self.times_original[-1] - self.times_original[0]
 
         for iperiod in range(0, nperiods):
@@ -47,7 +46,6 @@ class DistalPressureGenerator:
                 # we scale the current time to be in the original period
                 scaledtime = self.times_original[0] + (self.times[index] - self.times[mm[iperiod]]) / \
                              (self.times[mm[iperiod+1]] - self.times[mm[iperiod]]) * original_period
-                print(scaledtime)
                 self.myopressure[index] = interpolate.splev(scaledtime, self.myopressurespline_original, der=0)
 
         # # check how the myocardial pressure we built looks like

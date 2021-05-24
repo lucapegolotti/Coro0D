@@ -4,7 +4,7 @@ from distal_pressure_generator import DistalPressureGenerator
 import numpy as np
 
 class BCManager:
-    def __init__(self, portions, connectivity, inletbc_type, outletbc_type, folder, problem_data, coronary):
+    def __init__(self, portions, connectivity, inletbc_type, outletbc_type, folder, problem_data, coronary, distal_pressure_coeff = 1):
         self.portions = portions
         self.connectivity = connectivity
         self.inletbc_type = inletbc_type
@@ -12,6 +12,7 @@ class BCManager:
         self.folder = folder
         self.problem_data = problem_data
         self.coronary = coronary
+        self.distal_pressure_coeff = distal_pressure_coeff
         self.create_bcs()
 
     # we set the row where the boundary conditions start in matrices and vectors
@@ -30,7 +31,8 @@ class BCManager:
                                                                  self.inletbc.indices_minpressures,
                                                                  self.folder,
                                                                  self.problem_data,
-                                                                 self.coronary)
+                                                                 self.coronary,
+                                                                 self.distal_pressure_coeff)
 
         # find max outlet flag
         maxoutletflag = int(np.max(self.connectivity))
