@@ -26,3 +26,13 @@ class Windkessel2(Model):
 
     def get_vector(self):
         return np.array([-1/self.R, 1/self.R, 1])
+
+class Resistance(Model):
+    def __init__(self, R):
+        self.R = R
+
+    def get_vector_dot(self):
+        return np.array([0, 0, 0])
+
+    def get_vector(self):
+        return np.array([-1/self.R, 1/self.R, 1])

@@ -8,6 +8,8 @@ class PhysicalBlock:
             self.model = Windkessel2(vessel_portion.compute_R(problem_data.viscosity),
                                      vessel_portion.compute_C(problem_data.E, \
                                                               problem_data.thickness_ratio))
+        elif model_type == "resistance":
+            self.model = Resistance(vessel_portion.compute_R(problem_data.viscosity))
         else:
             raise NotImplementedError(model_type + " not implemented")
 
