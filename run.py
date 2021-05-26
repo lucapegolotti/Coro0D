@@ -3,7 +3,7 @@ from connectivity import *
 from plot_tools import *
 from physical_block import *
 from ode_system import ODESystem
-from bdf import BDF1
+from bdf import BDF1, BDF2
 from problem_data import ProblemData
 from bcmanager import BCManager
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ def main():
     paths = parse_vessels(fdr)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
     coeff_resistance = 0.8
-    coeff_capacitance = 0.2
+    coeff_capacitance = 0.3
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
@@ -28,10 +28,10 @@ def main():
                           folder = fdr,
                           problem_data = pd,
                           coronary = coronary,
-                          distal_pressure_coeff = 0.5,
-                          distal_pressure_shift = 40)
+                          distal_pressure_coeff = 0.54,
+                          distal_pressure_shift = 15)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
-    bdf = BDF1(ode_system, connectivity, pd, bcmanager)
+    bdf = BDF2(ode_system, connectivity, pd, bcmanager)
     # plot_vessel_portions(chunks, bifurcations, connectivity)
     solutions, times = bdf.run()
     ###
@@ -40,7 +40,7 @@ def main():
              np.add(solutions[9 * 3 + 0,:] / 1333.2 / 100,0.2),
              color = 'red',
              linestyle='dashed')
-    ax2.set_ylim([0.6,1.5])
+    # ax2.set_ylim([0.6,1.5])
     # plot_solution(solutions, times, pd.t0, pd.T, chunks, 9, 'Pin', fig = fig, ax = ax2)
     # ax2.plot(times,
     #          solutions[-5,:] / 1333.2,
@@ -51,7 +51,7 @@ def main():
     #          solutions[9 * 3 + 2,:] * 60,
     #          color = 'red',
     #          linestyle='dashed')
-    show_animation(solutions, times, pd.t0, chunks, 'Pin', resample = 4,
+    show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
     # check total flow / min
