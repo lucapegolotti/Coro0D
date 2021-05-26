@@ -1,3 +1,8 @@
+import sys
+
+# add path to core
+sys.path.append("../../core/")
+
 from parse import *
 from connectivity import *
 from plot_tools import *
@@ -10,10 +15,11 @@ import matplotlib.pyplot as plt
 from rc_calculator import RCCalculator
 from scipy.integrate import simps
 
+
 def main():
     pd = ProblemData()
     coronary = "right"
-    fdr = "examples/CoronaryP5/"
+    fdr = "./"
     paths = parse_vessels(fdr)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
     coeff_resistance = 0.8
@@ -60,6 +66,7 @@ def main():
     Qin = solutions[bcmanager.inletindex * 3 + 2, positive_times]
     print("Flow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/min]")
     print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
+    plot_show()
 
 if __name__ == "__main__":
     main()

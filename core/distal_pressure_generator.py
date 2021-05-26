@@ -32,17 +32,18 @@ class DistalPressureGenerator:
 
         self.times_original = np.array(self.times_original)
         self.myopressure_original = np.array(self.myopressure_original)
+        # plot original and shifted myocardial pressure
         import matplotlib.pyplot as plt
         fig = plt.figure()
         ax = plt.axes()
-        ax.plot(self.times_original, self.myopressure_original)
-        ax.set_xlim(0,1)
+        original, = ax.plot(self.times_original, self.myopressure_original)
         # apply shift
         self.myopressure_original = np.roll(self.myopressure_original, self.shift)
-        ax.plot(self.times_original, self.myopressure_original,
-                color = 'red',
-                linestyle='dashed')
-        plt.show()
+        ax.set_xlim(0,1)
+        shifted, = ax.plot(self.times_original, self.myopressure_original,
+                           color = 'red', linestyle='dashed')
+        ax.set_title("Myocardial pressure")
+        ax.legend([original, shifted],['original', 'shifted'])
 
         self.myopressurespline_original = interpolate.splrep(self.times_original,
                                                              self.myopressure_original)

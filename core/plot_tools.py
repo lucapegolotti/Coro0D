@@ -194,6 +194,6 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
                                               solutions[inlet_index * 3 + 0,::resample] / 1333.2),
                                        interval = 10,
                                        blit=False)
-
-    plot_show()
-    # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+        plot_show()
+        # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    return anim
