@@ -197,3 +197,44 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
         plot_show()
         # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
     return anim
+
+def show_inlet_vs_distal_pressure(bcmanager, t0, T):
+    fig = plt.figure()
+    ax = plt.axes()
+    times = bcmanager.inletbc.times
+    inpressures = bcmanager.inletbc.pressure_values / 1333.2
+    dpressures = []
+    for t in times:
+        dpressures.append(bcmanager.distal_pressure_generator.distal_pressure(t) / 1333.2)
+
+    inpline, = ax.plot(times, inpressures)
+    dpline, = ax.plot(times, np.array(dpressures), color = 'red', linestyle='dashed')
+    ax.set_xlim([t0, T])
+    ax.set_title("BCs pressures")
+    ax.set_xlabel('time [s]')
+    ax.set_ylabel('pressure [mmHg]')
+    ax.legend([inpline, dpline],['Inlet pressure', 'distal pressure'])
+
+def show_inlet_flow_vs_pressure(solutions, times, t0, T, inlet_index):
+    fig = plt.figure()
+    ax = plt.axes()
+    indices = np.where(np.logical_and(times>=t0, times<=T))
+    times = times[indices]
+    flow = solutions[inlet_index * 3 + 2, indices].squeeze()
+    # we get min and max flow in order to translate the pressure
+    mflow = np.min(flow)
+    Mflow = np.max(flow)
+
+    pressure = solutions[inlet_index * 3 + 0,indices].squeeze()
+    mpres = np.min(pressure)
+    Mpres = np.max(pressure)
+
+    pressure = mflow + (pressure - mpres) / (Mpres - mpres) * (Mflow -mflow)
+    fline, = ax.plot(times, flow)
+    pline, = ax.plot(times, pressure, color = 'red', linestyle='dashed')
+    ax.set_xlim([t0, T])
+    ax.set_ylim([mflow * 0.9, Mflow * 1.1])
+    ax.set_title("inlet flow vs pressure")
+    ax.set_xlabel('time [s]')
+    ax.set_ylabel('Q [mL/s]')
+    ax.legend([fline, pline],['Flow', 'Scaled pressure'])

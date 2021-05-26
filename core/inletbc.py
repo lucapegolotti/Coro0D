@@ -45,13 +45,13 @@ class InletBC:
             minima = np.where(minima == True)[0]
 
             # this is to check that the minima are visually correct
-            import matplotlib.pyplot as plt
-            fig = plt.figure()
-            ax = plt.axes()
-            ax.plot(self.times, self.pressure_values)
-            ax.plot(self.times[minima], self.pressure_values[minima],'ro')
-            plt.xlim([0, 3])
-            plt.show()
+            # import matplotlib.pyplot as plt
+            # fig = plt.figure()
+            # ax = plt.axes()
+            # ax.plot(self.times, self.pressure_values)
+            # ax.plot(self.times[minima], self.pressure_values[minima],'ro')
+            # plt.xlim([0, 3])
+            # plt.show()
 
             self.pressure_values = self.pressure_values[minima[0]:]
             self.times = np.subtract(self.times[minima[0]:],self.times[minima[0]])
