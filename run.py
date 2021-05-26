@@ -16,7 +16,9 @@ def main():
     fdr = "examples/CoronaryP5/"
     paths = parse_vessels(fdr)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
-    rc = RCCalculator(fdr, coronary)
+    coeff_resistance = 0.8
+    coeff_capacitance = 0.2
+    rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
     blocks = create_physical_blocks(chunks, model_type = 'Windkessel2', problem_data = pd)
@@ -26,17 +28,30 @@ def main():
                           folder = fdr,
                           problem_data = pd,
                           coronary = coronary,
-                          distal_pressure_coeff = 1.0)
+                          distal_pressure_coeff = 0.5,
+                          distal_pressure_shift = 40)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF1(ode_system, connectivity, pd, bcmanager)
     # plot_vessel_portions(chunks, bifurcations, connectivity)
     solutions, times = bdf.run()
-    fig, ax1, ax2 = plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
-    # ax2.plot(bcmanager.inletbc.times,
-    #          np.array(bcmanager.inletbc.pressure_values) / 1333.2,
+    ###
+    fig, ax1, ax2 = plot_solution(solutions, times, pd.t0, pd.T, chunks, 9, 'Q')
+    ax2.plot(times,
+             np.add(solutions[9 * 3 + 0,:] / 1333.2 / 100,0.2),
+             color = 'red',
+             linestyle='dashed')
+    ax2.set_ylim([0.6,1.5])
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 9, 'Pin', fig = fig, ax = ax2)
+    # ax2.plot(times,
+    #          solutions[-5,:] / 1333.2,
     #          color = 'red',
     #          linestyle='dashed')
-    show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
+    ###
+    # ax2.plot(times,
+    #          solutions[9 * 3 + 2,:] * 60,
+    #          color = 'red',
+    #          linestyle='dashed')
+    show_animation(solutions, times, pd.t0, chunks, 'Pin', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
     # check total flow / min

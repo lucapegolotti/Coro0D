@@ -41,7 +41,6 @@ class OutletBC:
         else:
             raise NotImplementedError(self.bc_type + " bc not implemented")
 
-
         # p0 - Ra * Q - K1 - Pd = 0
         matrix[row + 2, col + 0] = 1
         matrix[row + 2, col + 1] = -1

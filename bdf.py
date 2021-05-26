@@ -46,7 +46,7 @@ class BDF1:
 
         self.bdfmatrix = (self.matrix_dot - self.deltat * self.matrix)
 
-        print(np.linalg.cond(self.bdfmatrix))
-        print(np.where(~self.bdfmatrix.any(axis=1)))
-        plt.spy(self.bdfmatrix)
+        # print(np.linalg.cond(self.bdfmatrix))
+        # print(np.where(~self.bdfmatrix.any(axis=1)))
+        # plt.spy(self.bdfmatrix)
         # plt.show()

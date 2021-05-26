@@ -5,11 +5,12 @@ from scipy import interpolate
 from scipy.interpolate import splev, splrep
 
 class DistalPressureGenerator:
-    def __init__(self, times, indexminima, folder, problem_data, coronary, coeff):
+    def __init__(self, times, indexminima, folder, problem_data, coronary, coeff, shift):
         self.times = times
         self.indexminima = indexminima
         self.file = folder + "/Data/plv.dat"
         self.problem_data = problem_data
+        self.shift = shift
         if coronary == "left":
             self.coeff = 1.5 * coeff
         if coronary == "right":
@@ -31,6 +32,18 @@ class DistalPressureGenerator:
 
         self.times_original = np.array(self.times_original)
         self.myopressure_original = np.array(self.myopressure_original)
+        import matplotlib.pyplot as plt
+        fig = plt.figure()
+        ax = plt.axes()
+        ax.plot(self.times_original, self.myopressure_original)
+        ax.set_xlim(0,1)
+        # apply shift
+        self.myopressure_original = np.roll(self.myopressure_original, self.shift)
+        ax.plot(self.times_original, self.myopressure_original,
+                color = 'red',
+                linestyle='dashed')
+        plt.show()
+
         self.myopressurespline_original = interpolate.splrep(self.times_original,
                                                              self.myopressure_original)
 
@@ -48,12 +61,12 @@ class DistalPressureGenerator:
                              (self.times[mm[iperiod+1]] - self.times[mm[iperiod]]) * original_period
                 self.myopressure[index] = interpolate.splev(scaledtime, self.myopressurespline_original, der=0)
 
-        # # check how the myocardial pressure we built looks like
+        # check how the myocardial pressure we built looks like
         # import matplotlib.pyplot as plt
         # fig = plt.figure()
         # ax = plt.axes()
         # ax.plot(self.times, self.myopressure)
-        # ax.set_xlim(0,15)
+        # ax.set_xlim(0,2)
         # plt.show()
 
         self.myopressurespline = interpolate.splrep(self.times,
