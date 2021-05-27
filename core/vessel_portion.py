@@ -5,10 +5,11 @@ from scipy.integrate import simps
 import math
 
 class VesselPortion:
-    def __init__(self, xs = None, ys = None, zs = None):
+    def __init__(self, xs = None, ys = None, zs = None, pathname = None):
         if xs != None and ys != None and zs != None:
             coords = np.hstack([np.c_[xs],np.c_[ys],np.c_[zs]])
             self.set_coords(coords)
+        self.pathname = pathname
 
     def set_coords(self, coords):
         self.coords = coords
@@ -120,7 +121,7 @@ class VesselPortion:
         return self.break_at_indices(indicestobreak, tol), joints
 
     def split(self, begin, end):
-        newvessel = VesselPortion()
+        newvessel = VesselPortion(pathname = self.pathname)
         newvessel.set_coords(self.coords[begin:end+1,:])
         newvessel.contours = self.contours[begin:end+1]
         newvessel.radii = self.radii[begin:end+1,:]

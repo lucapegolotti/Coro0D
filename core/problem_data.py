@@ -15,10 +15,12 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.005
+        self.deltat = 0.0005
         # initial time
         self.t0 = 0.0
         # final time
         self.T = 10
         # ramp rime
         self.t0ramp = -2.0
+        # self length units of the geometry files
+        self.units = "mm"

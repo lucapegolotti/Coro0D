@@ -20,7 +20,7 @@ def main():
     pd = ProblemData()
     coronary = "left"
     fdr = "./"
-    paths = parse_vessels(fdr)
+    paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
     coeff_resistance = 0.67
     coeff_capacitance = 0.3
