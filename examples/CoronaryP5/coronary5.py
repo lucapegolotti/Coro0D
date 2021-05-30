@@ -9,12 +9,40 @@ from plot_tools import *
 from physical_block import *
 from ode_system import ODESystem
 from bdf import BDF1, BDF2
-from problem_data import ProblemData
 from bcmanager import BCManager
 import matplotlib.pyplot as plt
 from rc_calculator import RCCalculator
 from scipy.integrate import simps
 from output_writer import OutputWriter
+
+
+class ProblemData:
+    def __init__(self):
+        # tolerance to determine if two points are the same
+        self.tol = 0.3
+        # maxlength of the singe vessel portion
+        self.maxlength = 5 * self.tol
+        # density of blood
+        self.density = 1.06
+        # viscosity of blood
+        self.viscosity = 0.04
+        # elastic modulus
+        self.E = 2 * 10**5
+        # vessel thickness ration w.r.t. diameter
+        self.thickness_ratio = 0.08
+        # use pressure at inlet
+        self.use_inlet_pressure = True
+        # timestep size
+        self.deltat = 0.005
+        # initial time
+        self.t0 = 0.0
+        # final time
+        self.T = 10
+        # ramp rime
+        self.t0ramp = -2.0
+        # self length units of the geometry files
+        self.units = "cm"
+
 
 def main():
     pd = ProblemData()
@@ -22,8 +50,8 @@ def main():
     fdr = "./"
     paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
-    coeff_resistance = 0.8
-    coeff_capacitance = 0.2
+    coeff_resistance = 0.98
+    coeff_capacitance = 0.6
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
@@ -34,8 +62,8 @@ def main():
                           folder = fdr,
                           problem_data = pd,
                           coronary = coronary,
-                          distal_pressure_coeff = 0.54,
-                          distal_pressure_shift = 15)
+                          distal_pressure_coeff = 1.05,
+                          distal_pressure_shift = 10)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF2(ode_system, connectivity, pd, bcmanager)
     solutions, times = bdf.run()
@@ -43,6 +71,7 @@ def main():
     show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
+    plot_solution(solutions, times, pd.t0, pd.T, chunks, 0, 'Q')
     show_inlet_vs_distal_pressure(bcmanager, 0, 1)
 
     # check total flow / min
