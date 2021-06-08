@@ -19,7 +19,7 @@ from output_writer import OutputWriter
 class ProblemData:
     def __init__(self):
         # tolerance to determine if two points are the same
-        self.tol = 0.3
+        self.tol = 0.4
         # maxlength of the singe vessel portion
         self.maxlength = 5 * self.tol
         # density of blood
@@ -39,7 +39,7 @@ class ProblemData:
         # final time
         self.T = 10
         # ramp rime
-        self.t0ramp = -2.0
+        self.t0ramp = -0.3
         # self length units of the geometry files
         self.units = "cm"
 
@@ -50,6 +50,7 @@ def main():
     fdr = "./"
     paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
+    plot_vessel_portions(chunks, bifurcations, connectivity)
     coeff_resistance = 0.98
     coeff_capacitance = 0.6
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
@@ -67,7 +68,7 @@ def main():
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF2(ode_system, connectivity, pd, bcmanager)
     solutions, times = bdf.run()
-    show_inlet_flow_vs_pressure(solutions, times, 5, 6, 0)
+    show_inlet_flow_vs_pressure(solutions, times, bcmanager, 0, 2)
     show_animation(solutions, times, pd.t0, chunks, 'Q', resample = 4,
                    inlet_index = bcmanager.inletindex)
 
@@ -82,8 +83,9 @@ def main():
     print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
     ow = OutputWriter("output", bcmanager, chunks, pd)
     ow.write_outlet_rc()
-    ow.write_distal_pressure()
-    ow.write_inlet_pressure()
+    npoints = 101
+    ow.write_distal_pressure(pd, npoints)
+    ow.write_inlet_pressure(pd, npoints)
     plot_show()
 
 if __name__ == "__main__":

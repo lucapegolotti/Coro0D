@@ -3,7 +3,6 @@ from numpy import linalg
 import numpy as np
 import matplotlib.pylab as plt
 from abc import ABC, abstractmethod
-from problem_data import ProblemData
 
 class BDF:
     def __init__(self, ode_system, connectivity, problem_data, bc_manager):

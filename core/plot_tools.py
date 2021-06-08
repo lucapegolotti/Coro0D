@@ -21,10 +21,12 @@ def plot_vessel_portions(portions, bifurcations = None, connectivity = None, fig
         show_plot = True
     n = len(portions)
     lines = []
+    itercolor = False
     if color == None:
+        itercolor = True
         color = iter(cm.turbo(np.linspace(0, 1 ,n)))
     for i in range(0,n):
-        if color == None:
+        if itercolor:
             c = next(color)
         else:
             c = color
@@ -215,7 +217,8 @@ def show_inlet_vs_distal_pressure(bcmanager, t0, T):
     ax.set_ylabel('pressure [mmHg]')
     ax.legend([inpline, dpline],['Inlet pressure', 'distal pressure'])
 
-def show_inlet_flow_vs_pressure(solutions, times, t0, T, inlet_index):
+def show_inlet_flow_vs_pressure(solutions, times, bc_manager, t0, T):
+    inlet_index = bc_manager.inletindex
     fig = plt.figure()
     ax = plt.axes()
     indices = np.where(np.logical_and(times>=t0, times<=T))

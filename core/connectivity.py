@@ -2,7 +2,6 @@ from parse import *
 from plot_tools import *
 import numpy as np
 from numpy import linalg
-from problem_data import ProblemData
 
 # we need to look for the position of the bifurcations
 def build_slices(portions, tol, maxlength):

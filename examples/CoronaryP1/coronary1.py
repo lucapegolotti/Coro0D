@@ -9,12 +9,37 @@ from plot_tools import *
 from physical_block import *
 from ode_system import ODESystem
 from bdf import BDF1, BDF2
-from problem_data import ProblemData
 from bcmanager import BCManager
 import matplotlib.pyplot as plt
 from rc_calculator import RCCalculator
 from scipy.integrate import simps
 
+class ProblemData:
+    def __init__(self):
+        # tolerance to determine if two points are the same
+        self.tol = 0.5
+        # maxlength of the singe vessel portion
+        self.maxlength = 4 * self.tol
+        # density of blood
+        self.density = 1.06
+        # viscosity of blood
+        self.viscosity = 0.04
+        # elastic modulus
+        self.E = 2 * 10**5
+        # vessel thickness ration w.r.t. diameter
+        self.thickness_ratio = 0.08
+        # use pressure at inlet
+        self.use_inlet_pressure = True
+        # timestep size
+        self.deltat = 0.005
+        # initial time
+        self.t0 = 0.0
+        # final time
+        self.T = 10
+        # ramp rime
+        self.t0ramp = -2.0
+        # self length units of the geometry files
+        self.units = "mm"
 
 def main():
     pd = ProblemData()
@@ -22,8 +47,8 @@ def main():
     fdr = "./"
     paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
-    coeff_resistance = 0.67
-    coeff_capacitance = 0.3
+    coeff_resistance = 1.057
+    coeff_capacitance = 0.25
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
@@ -34,7 +59,7 @@ def main():
                           folder = fdr,
                           problem_data = pd,
                           coronary = coronary,
-                          distal_pressure_coeff = 0.52,
+                          distal_pressure_coeff = 1.0,
                           distal_pressure_shift = 15)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     bdf = BDF2(ode_system, connectivity, pd, bcmanager)

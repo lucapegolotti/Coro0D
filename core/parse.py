@@ -9,7 +9,7 @@ from contour import Contour
 def parse_vessels(fdr, problem_data):
     if problem_data.units == "mm":
         coeff = 0.1
-    elif problem_data.cm == "cm":
+    elif problem_data.units == "cm":
         coeff = 1
     else:
         raise ValueError(problem_data.units + " units not implemented")
@@ -17,11 +17,13 @@ def parse_vessels(fdr, problem_data):
     fullpaths = []
     index = 0
     for filename in os.listdir(fdr + "Paths/"):
-        index = index + 1
-        path = parse_single_path(fdr + "Paths/" + filename, filename[:-4], coeff)
-        filenamectgr = filename[0:-4] + ".ctgr"
-        path = parse_single_segmentation(fdr + "Segmentations/" + filenamectgr, path, coeff)
-        fullpaths.append(path)
+        if filename[0] != ".":
+            index = index + 1
+            print(filename)
+            path = parse_single_path(fdr + "Paths/" + filename, filename[:-4], coeff)
+            filenamectgr = filename[0:-4] + ".ctgr"
+            path = parse_single_segmentation(fdr + "Segmentations/" + filenamectgr, path, coeff)
+            fullpaths.append(path)
 
     return fullpaths
     # return list( fullpaths[i] for i in [0, 5] )

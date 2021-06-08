@@ -33,19 +33,29 @@ class OutputWriter:
         fstr = ""
 
         for index in outlet_indices:
-            fstr += self.portions[index].pathname + " "
-            fstr += str(float(self.portions[index].compute_Ra()) * coeff_r) + " "
-            fstr += str(float(self.portions[index].compute_Ca()) * coeff_c) + " "
+            fstr += "REAL(8) :: Ra_" + self.portions[index].pathname + " = "
+            fstr += str(float(self.portions[index].compute_Ra()) * coeff_r) + "\n"
+
+            fstr += "REAL(8) :: Ca_" + self.portions[index].pathname + " = "
+            fstr += str(float(self.portions[index].compute_Ca()) * coeff_c) + "\n"
+
+            fstr += "REAL(8) :: Rmicro_" + self.portions[index].pathname + " = "
             fstr += str(float(self.portions[index].compute_Ramicro() + \
-                          self.portions[index].compute_Rvmicro()) * coeff_r) + " "
-            fstr += str(float(self.portions[index].compute_Cim()) * coeff_c) + " "
+                          self.portions[index].compute_Rvmicro()) * coeff_r) + "\n"
+
+            fstr += "REAL(8) :: Cim_" + self.portions[index].pathname + " = "
+            fstr += str(float(self.portions[index].compute_Cim()) * coeff_c) + "\n"
+
+            fstr += "REAL(8) :: Rv_" + self.portions[index].pathname + " = "
             fstr += str(float(self.portions[index].compute_Rv()) * coeff_r) + "\n"
+
+            fstr += "\n"
 
         outfile = open(self.output_fdr + "/resistance_capacitance.txt", "w")
         outfile.write(fstr)
         outfile.close()
 
-    def write_distal_pressure(self):
+    def write_distal_pressure(self, data, npoints):
         if self.problem_data.units == "mm":
             coeff = 10
         else:
@@ -57,17 +67,18 @@ class OutputWriter:
         times_period = [self.bc_manager.inletbc.times[indices_period[0]], \
                         self.bc_manager.inletbc.times[indices_period[1]]]
         # we create a fine partition of the period
-        times = np.linspace(times_period[0], times_period[1], 100001)
+        # times = np.linspace(times_period[0], times_period[1], 100001)
+        times = np.linspace(data.t0ramp, data.T, npoints)
 
         outfile = open(self.output_fdr + "/distal_pressure.txt", "w")
         for t in times:
             dp = self.bc_manager.distal_pressure_generator.distal_pressure(t)
-            curstr = str(float(t - times_period[0])) + " "
+            curstr = str(float(t - times[0])) + " "
             curstr += str(float(dp) * coeff) + "\n"
             outfile.write(curstr)
         outfile.close()
 
-    def write_inlet_pressure(self):
+    def write_inlet_pressure(self, data, npoints):
         if self.problem_data.units == "mm":
             coeff = 10
         else:
@@ -79,12 +90,13 @@ class OutputWriter:
         times_period = [self.bc_manager.inletbc.times[indices_period[0]], \
                         self.bc_manager.inletbc.times[indices_period[1]]]
         # we create a fine partition of the period
-        times = np.linspace(times_period[0], times_period[1], 100001)
+        # times = np.linspace(times_period[0], times_period[1], 100001)
+        times = np.linspace(data.t0ramp, data.T, npoints)
 
         outfile = open(self.output_fdr + "/inlet_pressure.txt", "w")
         for t in times:
             p = self.bc_manager.inletbc.inlet_function(t)
-            curstr = str(float(t - times_period[0])) + " "
+            curstr = str(float(t - times[0])) + " "
             curstr += str(float(p) * coeff) + "\n"
             outfile.write(curstr)
         outfile.close()

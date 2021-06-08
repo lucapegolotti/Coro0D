@@ -48,6 +48,7 @@ class RCCalculator:
             curresistance = suma / (np.sqrt(curarea) ** m) * self.total_resistance
             portions[portionindex].set_total_outlet_resistance(curresistance)
 
+
     def assign_capacitances_to_outlets(self, portions, connectivity):
         maxoutletflag = int(np.max(connectivity))
 

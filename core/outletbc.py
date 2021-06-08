@@ -27,12 +27,14 @@ class OutletBC:
             Ca = self.portion.compute_Ca()
             Cim = self.portion.compute_Cim()
 
-            # Ca \dot{K1} = Q - (K1 - K2) / Ramicro
+            # Ca \dot{K1} = Q - (K1 - K2 - Pd) / Ramicro
+            matrix[row + 0, col + 1] = 1 / (Ramicro * Ca)
             matrix[row + 0, col + 2] = 1 / Ca
             matrix[row + 0, col + 3] = -1 / (Ramicro * Ca)
             matrix[row + 0, col + 4] = 1 / (Ramicro * Ca)
 
-            # Cim \dot{K2} = (K1 - K2) / (Ramicro) - K2 / (Rvmicro + Rv)
+            # Cim \dot{K2} = (K1 - K2 - Pd) / (Ramicro) - (K2 + Pd) / (Rvmicro + Rv)
+            matrix[row + 1, col + 1] = -1 / (Cim) * (1 / Ramicro + 1/(Rvmicro + Rv))
             matrix[row + 1, col + 3] = 1 / (Ramicro * Cim)
             matrix[row + 1, col + 4] = -1 / (Cim) * (1 / Ramicro + 1/(Rvmicro + Rv))
         elif self.bc_type == "resistance":
@@ -41,9 +43,9 @@ class OutletBC:
         else:
             raise NotImplementedError(self.bc_type + " bc not implemented")
 
-        # p0 - Ra * Q - K1 - Pd = 0
+        # p0 - Ra * Q - K1 = 0
         matrix[row + 2, col + 0] = 1
-        matrix[row + 2, col + 1] = -1
+        matrix[row + 2, col + 1] = 0
         matrix[row + 2, col + 2] = -Ra
         matrix[row + 2, col + 3] = -1
 

@@ -1,6 +1,5 @@
 import numpy as np
 import contour as Contour
-from problem_data import ProblemData
 from scipy.integrate import simps
 import math
 
