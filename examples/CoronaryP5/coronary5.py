@@ -84,7 +84,7 @@ def main():
     print("Flow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
     print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
 
-    ow = OutputWriter("output", bcmanager, chunks, pd)
+    ow = OutputWriter("Output", bcmanager, chunks, pd)
     ow.write_outlet_rc()
     npoints = 101
     ow.write_distal_pressure(pd, npoints)
