@@ -27,7 +27,9 @@ class ProblemData:
         # viscosity of blood
         self.viscosity = 0.04
         # elastic modulus
-        self.E = 2 * 10**5
+        # taken from "Measurement of the uniaxial mechanical properties of healthy
+        # and atherosclerotic human coronary arteries"
+        self.E = 1.5 * 10**7
         # vessel thickness ration w.r.t. diameter
         self.thickness_ratio = 0.08
         # use pressure at inlet
@@ -86,6 +88,8 @@ def main():
     npoints = 101
     ow.write_distal_pressure(pd, npoints)
     ow.write_inlet_pressure(pd, npoints)
+    ow.write_inlet_outlets_flow_pressures(times, solutions, chunks, bcmanager)
+    ow.write_thickess_caps(paths)
     plot_show()
 
 if __name__ == "__main__":
