@@ -1,5 +1,3 @@
-from vessel_portion import VesselPortion
-
 class OutletBC:
     def __init__(self, portion, index, bc_type, distal_pressure_generator):
         self.portion = portion
@@ -8,6 +6,7 @@ class OutletBC:
         self.nvariables = 5
         self.distal_pressure_generator = distal_pressure_generator
 
+        return
 
     # the variables are ordered as follows: p0, pd, Q, K1,K2, where K1 and K2
     # are the pressure drops across the two capacitors
@@ -34,9 +33,9 @@ class OutletBC:
             matrix[row + 0, col + 4] = 1 / (Ramicro * Ca)
 
             # Cim \dot{K2} = (K1 - K2 - Pd) / (Ramicro) - (K2 + Pd) / (Rvmicro + Rv)
-            matrix[row + 1, col + 1] = -1 / (Cim) * (1 / Ramicro + 1/(Rvmicro + Rv))
+            matrix[row + 1, col + 1] = -1 / (Cim) * (1 / Ramicro + 1 / (Rvmicro + Rv))
             matrix[row + 1, col + 3] = 1 / (Ramicro * Cim)
-            matrix[row + 1, col + 4] = -1 / (Cim) * (1 / Ramicro + 1/(Rvmicro + Rv))
+            matrix[row + 1, col + 4] = -1 / (Cim) * (1 / Ramicro + 1 / (Rvmicro + Rv))
         elif self.bc_type == "resistance":
             Ra = self.portion.compute_Ra() + self.portion.compute_Rv() + \
                  self.portion.compute_Ramicro() + self.portion.compute_Rvmicro()
@@ -54,7 +53,7 @@ class OutletBC:
 
         # continuity of pressure with neighboring portion
         matrix[row + 4, col + 0] = 1
-        matrix[row + 4, self.portionindex * 3 + 1] = -1 # outlet pressure of portion
+        matrix[row + 4, self.portionindex * 3 + 1] = -1  # outlet pressure of portion
 
         # continuity of flowrate with neighboring portion
         matrix[row + 5, col + 2] = 1

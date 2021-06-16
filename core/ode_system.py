@@ -1,5 +1,5 @@
 import numpy as np
-from physical_block import PhysicalBlock
+
 
 class ODESystem:
     def __init__(self, blocks, connectivity, bc_manager):
@@ -16,39 +16,41 @@ class ODESystem:
         bc_manager.add_bcs_dot(self.smatrix_dot)
         bc_manager.add_bcs(self.smatrix)
 
+        return
+
     def assemble_system_matrix_dot(self):
         nblocks = len(self.blocks)
         smatrix_dot = np.zeros([self.nvariables, self.nvariables])
         for i in range(0, nblocks):
             vecdot = self.blocks[i].model.get_vector_dot()
-            smatrix_dot[i,3*i + 0] = vecdot[0]
-            smatrix_dot[i,3*i + 1] = vecdot[1]
-            smatrix_dot[i,3*i + 2] = vecdot[2]
+            smatrix_dot[i, 3 * i + 0] = vecdot[0]
+            smatrix_dot[i, 3 * i + 1] = vecdot[1]
+            smatrix_dot[i, 3 * i + 2] = vecdot[2]
 
         return smatrix_dot
 
     def assemble_system_matrix(self):
         nblocks = len(self.blocks)
         smatrix = np.zeros([self.nvariables, self.nvariables])
-        for i in range(0, nblocks):
+        for i in range(nblocks):
             vecdot = self.blocks[i].model.get_vector()
-            smatrix[i,3*i + 0] = vecdot[0]
-            smatrix[i,3*i + 1] = vecdot[1]
-            smatrix[i,3*i + 2] = vecdot[2]
+            smatrix[i, 3 * i + 0] = vecdot[0]
+            smatrix[i, 3 * i + 1] = vecdot[1]
+            smatrix[i, 3 * i + 2] = vecdot[2]
 
         constraintrow = nblocks
         # add constraints
         for connectivity in self.connectivity:
             # conservation of flow
             isboundary = True
-            for iflag in range(0, nblocks):
+            for iflag in range(nblocks):
                 # incoming flow
                 if connectivity[iflag] == 1:
                     isboundary = False
-                    smatrix[constraintrow,3*iflag + 2] = 1
+                    smatrix[constraintrow, 3 * iflag + 2] = 1
                 if connectivity[iflag] == -1:
                     isboundary = False
-                    smatrix[constraintrow,3*iflag + 2] = -1
+                    smatrix[constraintrow, 3 * iflag + 2] = -1
             if not isboundary:
                 constraintrow += 1
 
@@ -59,16 +61,16 @@ class ODESystem:
             for i in range(1, nindices):
                 if connectivity[indices[0]] == 1:
                     # + 0 corresponds to inlet
-                    smatrix[constraintrow, 3*indices[0] + 0] = 1
+                    smatrix[constraintrow, 3 * indices[0] + 0] = 1
                 else:
                     # + 1 corresponds to outlet
-                    smatrix[constraintrow, 3*indices[0] + 1] = 1
+                    smatrix[constraintrow, 3 * indices[0] + 1] = 1
                 if connectivity[indices[i]] == 1:
                     # + 0 corresponds to inlet
-                    smatrix[constraintrow, 3*indices[i] + 0] = -1
+                    smatrix[constraintrow, 3 * indices[i] + 0] = -1
                 else:
                     # + 1 corresponds to outlet
-                    smatrix[constraintrow, 3*indices[i] + 1] = -1
+                    smatrix[constraintrow, 3 * indices[i] + 1] = -1
                 constraintrow += 1
 
         self.rowbcs = constraintrow
@@ -96,6 +98,5 @@ class ODESystem:
         #     self.bdfmatrix[currow,indexoutletblock[1] * 3 + 1] = 1
         #     self.outletbcrows.append(currow)
         #
-
 
         return smatrix

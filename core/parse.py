@@ -1,10 +1,10 @@
 import os
 import re
 import numpy as np
-from numpy import linalg
 import xml.etree.ElementTree as ET
 from vessel_portion import VesselPortion
 from contour import Contour
+
 
 def parse_vessels(fdr, problem_data):
     if problem_data.units == "mm":
@@ -16,17 +16,16 @@ def parse_vessels(fdr, problem_data):
 
     fullpaths = []
     index = 0
-    for filename in os.listdir(fdr + "Paths/"):
+    for filename in os.listdir(os.path.join(fdr, "Paths")):
         if filename[0] != ".":
             index = index + 1
             print(filename)
-            path = parse_single_path(fdr + "Paths/" + filename, filename[:-4], coeff)
+            path = parse_single_path(os.path.join(fdr, "Paths", filename), filename[:-4], coeff)
             filenamectgr = filename[0:-4] + ".ctgr"
-            path = parse_single_segmentation(fdr + "Segmentations/" + filenamectgr, path, coeff)
+            path = parse_single_segmentation(os.path.join(fdr, "Segmentations", filenamectgr), path, coeff)
             fullpaths.append(path)
 
     return fullpaths
-    # return list( fullpaths[i] for i in [0, 5] )
 
 
 def open_xml(namefile):
@@ -38,6 +37,7 @@ def open_xml(namefile):
                          "</root>")
 
     return tree
+
 
 def parse_single_path(namefile, pathname, coeff):
     tree = open_xml(namefile)
@@ -58,6 +58,7 @@ def parse_single_path(namefile, pathname, coeff):
     single_path = VesselPortion(xs, ys, zs, pathname)
     return single_path
 
+
 def parse_single_segmentation(namefile, vessel, coeff):
     tree = open_xml(namefile)
 
@@ -65,20 +66,20 @@ def parse_single_segmentation(namefile, vessel, coeff):
     # we skip the first index because it corresponds to "lofting_parameters"
     ncontours = len(tree[1][0]) - 1
     for icont in range(0, ncontours):
-        curcontour = tree[1][0][icont+1]
+        curcontour = tree[1][0][icont + 1]
         # we want to use cgs system
         x = float(curcontour[0][0].attrib['x']) * coeff
         y = float(curcontour[0][0].attrib['y']) * coeff
         z = float(curcontour[0][0].attrib['z']) * coeff
         id = int(curcontour[0].attrib['id'])
-        control_point = np.array([x,y,z])
+        control_point = np.array([x, y, z])
         curpoints = curcontour[2]
         ncurpoints = len(curpoints)
-        contour = np.zeros([ncurpoints,3])
+        contour = np.zeros([ncurpoints, 3])
         for ipoint in range(0, ncurpoints):
-            contour[ipoint,0] = float(curpoints[ipoint].attrib['x']) * coeff
-            contour[ipoint,1] = float(curpoints[ipoint].attrib['y']) * coeff
-            contour[ipoint,2] = float(curpoints[ipoint].attrib['z']) * coeff
+            contour[ipoint, 0] = float(curpoints[ipoint].attrib['x']) * coeff
+            contour[ipoint, 1] = float(curpoints[ipoint].attrib['y']) * coeff
+            contour[ipoint, 2] = float(curpoints[ipoint].attrib['z']) * coeff
 
         contours.append(Contour(control_point, contour, id))
 

@@ -1,36 +1,42 @@
 import numpy as np
-import contour as Contour
 from scipy.integrate import simps
 import math
 
+
 class VesselPortion:
-    def __init__(self, xs = None, ys = None, zs = None, pathname = None):
-        if xs != None and ys != None and zs != None:
-            coords = np.hstack([np.c_[xs],np.c_[ys],np.c_[zs]])
+    def __init__(self, xs=None, ys=None, zs=None, pathname=None):
+        if xs is not None and ys is not None and zs is not None:
+            coords = np.hstack([np.c_[xs], np.c_[ys], np.c_[zs]])
             self.set_coords(coords)
         self.pathname = pathname
+
+        return
 
     def set_coords(self, coords):
         self.coords = coords
         self.compute_arclength()
+        return
 
     def compute_arclength(self):
         ncoords = self.coords.shape[0]
-        self.arclength = np.zeros([ncoords,1])
+        self.arclength = np.zeros([ncoords, 1])
 
         for icoord in range(1, ncoords):
-            diff = self.coords[icoord,:] - self.coords[icoord-1,:]
-            self.arclength[icoord] = self.arclength[icoord-1] + np.linalg.norm(diff)
+            diff = self.coords[icoord, :] - self.coords[icoord - 1, :]
+            self.arclength[icoord] = self.arclength[icoord - 1] + np.linalg.norm(diff)
+
+        return
 
     def find_closest_point(self, point, tol):
         ncoords = self.coords.shape[0]
         minindex = -1
         minmagdiff = tol
-        for i in range(0, ncoords):
-            magdiff = np.linalg.norm(self.coords[i,:] - point)
+        for i in range(ncoords):
+            magdiff = np.linalg.norm(self.coords[i, :] - point)
             if magdiff < minmagdiff:
                 minmagdiff = magdiff
                 minindex = i
+
         return minindex
 
     # break the VesselPortion at points; the points are identified up to tol
@@ -51,26 +57,29 @@ class VesselPortion:
         # we add the last index in order to include the last portion
         indices.append(ncoords)
         indices.sort()
-        if np.linalg.norm(self.coords[indices[0],:] - self.coords[0,:]) > tol:
-            indices.insert(0,0)
+        if np.linalg.norm(self.coords[indices[0], :] - self.coords[0, :]) > tol:
+            indices.insert(0, 0)
 
         portions = []
         previndex = indices[0]
         for index in indices[1:]:
-            portions.append(self.split(previndex,index))
+            portions.append(self.split(previndex, index))
             previndex = index
+
         return portions
 
     def compute_area_outlet(self):
         # find last non zero radius
         index = np.where(self.radii > 0)[0][-1]
-        return math.pi * self.radii[index]**2
+        return math.pi * self.radii[index] ** 2
 
     def set_total_outlet_resistance(self, resistance):
         self.total_outlet_resistance = resistance
+        return
 
     def set_total_outlet_capacitance(self, capacitance):
         self.total_outlet_capacitance = capacitance
+        return
 
     # Note: this function should only be called when the path_ids still correspond
     # to the indices of the coordinates! Namely, the vessel must have been just
@@ -81,28 +90,30 @@ class VesselPortion:
         ncoords = self.coords.shape[0]
         ncontours = len(contours)
         self.contours = [None] * ncoords
-        self.radii = np.zeros([ncoords,1])
+        self.radii = np.zeros([ncoords, 1])
         for icont in range(0, ncontours):
             curid = contours[icont].id_path
             self.contours[curid] = contours[icont]
             self.radii[curid] = contours[icont].radius
             # interpolate between consecutve radii
-            if icont != ncontours-1:
+            if icont != ncontours - 1:
                 curarclength = self.arclength[curid]
-                nextid = contours[icont+1].id_path
+                nextid = contours[icont + 1].id_path
                 nextarclength = self.arclength[nextid]
-                nextradius = contours[icont+1].radius
+                nextradius = contours[icont + 1].radius
                 for jcoord in range(curid, nextid):
                     jarclength = self.arclength[jcoord]
-                    curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * (nextradius - self.radii[curid])
+                    curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * (
+                                nextradius - self.radii[curid])
                     self.radii[jcoord] = curradius
+
+        return
 
     def limit_length(self, tol, length):
         narclengths = self.arclength.shape[0]
-        caplength = length
         indicestobreak = []
-        joints = np.zeros([0,3])
-        totarclength = self.arclength[-1,0]
+        joints = np.zeros([0, 3])
+        totarclength = self.arclength[-1, 0]
 
         # find maximum number of equally sized slices which we can divide the
         # portion while still respecting the limit length
@@ -112,18 +123,19 @@ class VesselPortion:
 
         caplength = totarclength / ndivisions
 
-        for iarchlg in range(0, narclengths):
+        for iarchlg in range(narclengths):
             if self.arclength[iarchlg] > caplength:
                 indicestobreak.append(iarchlg - 1)
                 caplength += totarclength / ndivisions
-                joints = np.vstack([joints,self.coords[iarchlg - 1,:]])
+                joints = np.vstack([joints, self.coords[iarchlg - 1, :]])
+
         return self.break_at_indices(indicestobreak, tol), joints
 
     def split(self, begin, end):
-        newvessel = VesselPortion(pathname = self.pathname)
-        newvessel.set_coords(self.coords[begin:end+1,:])
-        newvessel.contours = self.contours[begin:end+1]
-        newvessel.radii = self.radii[begin:end+1,:]
+        newvessel = VesselPortion(pathname=self.pathname)
+        newvessel.set_coords(self.coords[begin:end + 1, :])
+        newvessel.contours = self.contours[begin:end + 1]
+        newvessel.radii = self.radii[begin:end + 1, :]
         return newvessel
 
     def show_me(self):
@@ -145,20 +157,20 @@ class VesselPortion:
     # "Design of a 0D image-based coronary blood flow model" by Uus, Liatsis
     def compute_R(self, viscosity):
         self.compute_mean_radius()
-        self.R = float(128 * viscosity * self.arclength[-1] / \
-                 (math.pi * ((2 * self.mean_radius)**4)))
+        self.R = float(128 * viscosity * self.arclength[-1] /
+                       (math.pi * ((2 * self.mean_radius) ** 4)))
         return self.R
 
     def compute_C(self, E, thickness_ratio):
         self.compute_mean_radius()
-        self.C = float(math.pi * ((2 * self.mean_radius)**3) * self.arclength[-1] / \
-                 (4 * E * thickness_ratio * (2 * self.mean_radius)))
+        self.C = float(math.pi * ((2 * self.mean_radius) ** 3) * self.arclength[-1] /
+                       (4 * E * thickness_ratio * (2 * self.mean_radius)))
         return self.C
 
     def compute_L(self, density):
         self.compute_mean_radius()
-        self.L = float(4 * density * self.arclength[-1] / \
-                 (math.pi * (2 * self.mean_radius)**2))
+        self.L = float(4 * density * self.arclength[-1] /
+                       (math.pi * (2 * self.mean_radius) ** 2))
         return self.L
 
     def compute_Ra(self):
@@ -168,7 +180,7 @@ class VesselPortion:
         return 0.52 * self.total_outlet_resistance
 
     def compute_Rvmicro(self):
-        return 0
+        return 0.0
 
     def compute_Rv(self):
         return 0.16 * self.total_outlet_resistance
@@ -180,7 +192,7 @@ class VesselPortion:
         return 0.89 * self.total_outlet_capacitance
 
     def compute_mean_radius(self):
-        if not hasattr(self,"mean_radius"):
+        if not hasattr(self, "mean_radius"):
             posindices = np.where(self.radii > 0)
             posradii = self.radii[posindices]
             posarclength = self.arclength[posindices]
@@ -188,4 +200,6 @@ class VesselPortion:
             # we compute the mean radius using the integral over the arclength
             integrated_radius = simps(posradii, posarclength)
             # area = simps(np.ones(posradii.shape),posarclength)
-            self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])# area
+            self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])  # area
+
+            return

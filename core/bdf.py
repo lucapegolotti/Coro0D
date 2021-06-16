@@ -1,8 +1,7 @@
-from ode_system import ODESystem
 from numpy import linalg
 import numpy as np
-import matplotlib.pylab as plt
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
 
 class BDF:
     def __init__(self, ode_system, connectivity, problem_data, bc_manager):
@@ -15,6 +14,8 @@ class BDF:
         self.t0ramp = problem_data.t0ramp
         self.bc_manager = bc_manager
         self.setup_system()
+
+        return
 
     @abstractmethod
     def order(self):
@@ -32,9 +33,9 @@ class BDF:
         t = self.t0ramp
         times = [t]
         syssize = self.bdfmatrix.shape[0]
-        prev_solutions = [np.zeros([syssize,1]) for i in range(0, self.order())]
-        sols = [np.zeros([syssize,1])]
-        bcvec = np.zeros([syssize,1])
+        prev_solutions = [np.zeros([syssize, 1]) for i in range(0, self.order())]
+        sols = [np.zeros([syssize, 1])]
+        bcvec = np.zeros([syssize, 1])
         while t < self.T:
             t = t + self.deltat
 
@@ -54,7 +55,6 @@ class BDF:
 
         return np.array(sols).squeeze().T, np.array(times)
 
-
     def setup_system(self):
         self.matrix_dot = self.ode_system.smatrix_dot
         self.matrix = self.ode_system.smatrix
@@ -66,9 +66,13 @@ class BDF:
         # plt.spy(self.bdfmatrix)
         # plt.show()
 
+        return
+
+
 class BDF1(BDF):
     def __init__(self, ode_system, connectivity, problem_data, bc_manager):
         super().__init__(ode_system, connectivity, problem_data, bc_manager)
+        return
 
     def order(self):
         return 1
@@ -79,15 +83,17 @@ class BDF1(BDF):
     def prev_solutions_contribution(self, solutions):
         return solutions[-1]
 
+
 class BDF2(BDF):
     def __init__(self, ode_system, connectivity, problem_data, bc_manager):
         super().__init__(ode_system, connectivity, problem_data, bc_manager)
+        return
 
     def order(self):
         return 2
 
     def beta(self):
-        return 2/3
+        return 2 / 3
 
     def prev_solutions_contribution(self, solutions):
-        return solutions[-1] * 4/3 - solutions[-2] * 1/3
+        return solutions[-1] * 4 / 3 - solutions[-2] * 1 / 3
