@@ -21,9 +21,11 @@ def parse_vessels(fdr, problem_data):
             index = index + 1
             print(filename)
             path = parse_single_path(os.path.join(fdr, "Paths", filename), filename[:-4], coeff)
-            filenamectgr = filename[0:-4] + ".ctgr"
-            path = parse_single_segmentation(os.path.join(fdr, "Segmentations", filenamectgr), path, coeff)
-            fullpaths.append(path)
+            if path is not None:
+                filenamectgr = filename[0:-4] + ".ctgr"
+                path = parse_single_segmentation(os.path.join(fdr, "Segmentations", filenamectgr), path, coeff)
+                if path is not None:
+                    fullpaths.append(path)
 
     return fullpaths
 
@@ -40,32 +42,57 @@ def open_xml(namefile):
 
 
 def parse_single_path(namefile, pathname, coeff):
+
+    if namefile[-4:] != ".pth":
+        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing paths.")
+        return
+
     tree = open_xml(namefile)
 
     xs = []
     ys = []
     zs = []
 
-    path_points = tree[1][0][0][1]
+    path_points = tree[-1][0][0][1]
+
+    isReversed = (float(path_points[0][0].attrib['z']) - float(path_points[-1][0].attrib['z'])) < 0
+    if isReversed:
+        print(f"{namefile} is a reversed path!")
+
     for child in path_points:
         x = float(child[0].attrib['x']) * coeff
         y = float(child[0].attrib['y']) * coeff
         z = float(child[0].attrib['z']) * coeff
-        xs.append(x)
-        ys.append(y)
-        zs.append(z)
+        if not isReversed:
+            xs.append(x)
+            ys.append(y)
+            zs.append(z)
+        else:
+            xs.insert(0, x)
+            ys.insert(0, y)
+            zs.insert(0, z)
 
     single_path = VesselPortion(xs, ys, zs, pathname)
     return single_path
 
 
 def parse_single_segmentation(namefile, vessel, coeff):
+
+    if namefile[-5:] != ".ctgr":
+        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing segmentations.")
+        return
+
     tree = open_xml(namefile)
 
     contours = []
     # we skip the first index because it corresponds to "lofting_parameters"
     ncontours = len(tree[1][0]) - 1
-    for icont in range(0, ncontours):
+
+    isReversed = (float(tree[1][0][1][0][0].attrib['z']) - float(tree[1][0][-1][0][0].attrib['z'])) < 0
+    if isReversed:
+        print(f"{namefile} is a reversed path!")
+
+    for icont in range(ncontours):
         curcontour = tree[1][0][icont + 1]
         # we want to use cgs system
         x = float(curcontour[0][0].attrib['x']) * coeff
@@ -76,12 +103,15 @@ def parse_single_segmentation(namefile, vessel, coeff):
         curpoints = curcontour[2]
         ncurpoints = len(curpoints)
         contour = np.zeros([ncurpoints, 3])
-        for ipoint in range(0, ncurpoints):
+        for ipoint in range(ncurpoints):
             contour[ipoint, 0] = float(curpoints[ipoint].attrib['x']) * coeff
             contour[ipoint, 1] = float(curpoints[ipoint].attrib['y']) * coeff
             contour[ipoint, 2] = float(curpoints[ipoint].attrib['z']) * coeff
 
-        contours.append(Contour(control_point, contour, id))
+        if not isReversed:
+            contours.append(Contour(control_point, contour, id))
+        else:
+            contours.insert(0, Contour(control_point, contour, id))
 
     vessel.add_contours(contours)
 
