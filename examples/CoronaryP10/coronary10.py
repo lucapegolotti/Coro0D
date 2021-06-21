@@ -37,13 +37,15 @@ class ProblemData:
         # initial time
         self.t0 = 0.0
         # final time
-        self.T = 8
+        self.T = 3
         # ramp rime
         self.t0ramp = -0.3
         # index of the first minima to be considered
         self.starting_minima = 1
         # self length units of the geometry files
         self.units = "cm"
+        # name of the inlet branch
+        self.inlet_name = 'LAD'
 
 
 def main():
@@ -92,6 +94,8 @@ def main():
     npoints = 10001
     ow.write_distal_pressure(pd, npoints)
     ow.write_inlet_pressure(pd, npoints)
+    ow.write_inlet_outlets_flow_pressures(times, solutions, chunks, bcmanager)
+    ow.write_thickess_caps(paths)
 
     plot_show()
 

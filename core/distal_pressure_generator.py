@@ -1,3 +1,4 @@
+import os
 import csv
 import math
 import numpy as np
@@ -9,12 +10,12 @@ class DistalPressureGenerator:
     def __init__(self, times, indexminima, folder, problem_data, coronary, coeff, shift):
         self.times = times
         self.indexminima = indexminima
-        self.file = folder + "/Data/plv.dat"
+        self.file = os.path.join(folder, os.path.normpath("Data/plv.dat"))
         self.problem_data = problem_data
         self.shift = shift
         if coronary == "left":
             self.coeff = 1.5 * coeff
-        if coronary == "right":
+        elif coronary == "right":
             self.coeff = 0.5 * coeff
         self.parse_myocardial_pressure()
         self.build_myocardial_pressure()
@@ -69,8 +70,8 @@ class DistalPressureGenerator:
         # check how the myocardial pressure we built looks like
         # plt.figure()
         # ax = plt.axes()
-        # ax.plot(self.times, self.myopressure)
-        # ax.set_xlim(0,2)
+        # ax.plot(self.times, self.myopressure / 1333.22)
+        # ax.set_xlim(15, 18)
         # plt.show()
 
         self.myopressurespline = splrep(self.times, self.myopressure)

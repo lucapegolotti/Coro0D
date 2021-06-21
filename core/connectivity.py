@@ -42,7 +42,8 @@ def build_connectivity(portions, bifurcations, tol):
 
     indexglobaloutlet = 3
     # add global inlet and outlet
-    for porindex in range(0, nportions):
+    for porindex in range(nportions):
+
         bifone = np.where(connectivity[:, porindex] == 1)
         # then, this portion has a global inlet
         if bifone[0].shape[0] == 0:

@@ -33,21 +33,21 @@ class BDF:
         t = self.t0ramp
         times = [t]
         syssize = self.bdfmatrix.shape[0]
-        prev_solutions = [np.zeros([syssize, 1]) for i in range(0, self.order())]
+        prev_solutions = [np.zeros([syssize, 1]) for _ in range(self.order())]
         sols = [np.zeros([syssize, 1])]
         bcvec = np.zeros([syssize, 1])
         while t < self.T:
-            t = t + self.deltat
+            t += self.deltat
 
             print('Solving t = ' + "{:.2f}".format(t) + " s")
 
             # assemble rhs
             rhs = self.matrix_dot.dot(self.prev_solutions_contribution(prev_solutions))
             self.bc_manager.apply_bc_vector(bcvec, t)
-
             rhs += self.beta() * self.deltat * bcvec
 
             u = np.linalg.solve(self.bdfmatrix, rhs)
+
             sols.append(u)
             prev_solutions.append(u)
             prev_solutions.pop(0)

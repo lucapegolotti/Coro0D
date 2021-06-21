@@ -95,7 +95,7 @@ class VesselPortion:
             curid = contours[icont].id_path
             self.contours[curid] = contours[icont]
             self.radii[curid] = contours[icont].radius
-            # interpolate between consecutve radii
+            # interpolate between consecutive radii
             if icont != ncontours - 1:
                 curarclength = self.arclength[curid]
                 nextid = contours[icont + 1].id_path

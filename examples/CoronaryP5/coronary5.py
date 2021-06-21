@@ -45,6 +45,8 @@ class ProblemData:
         self.starting_minima = 0
         # self length units of the geometry files
         self.units = "cm"
+        # name of the inlet branch
+        self.inlet_name = 'RCA'
 
 
 def main():
@@ -91,6 +93,7 @@ def main():
     ow.write_inlet_pressure(pd, npoints)
     ow.write_inlet_outlets_flow_pressures(times, solutions, chunks, bcmanager)
     ow.write_thickess_caps(paths)
+
     plot_show()
 
 
