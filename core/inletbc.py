@@ -43,13 +43,13 @@ class InletBC:
             self.pressure_values = np.array(self.pressure_values)
             self.times = np.array(self.times)
 
-            # we find the local minima. First we apply a filter
+            # we find the local minima. First we apply a lowpass filter
             filtered_pressures = savgol_filter(self.pressure_values, 13, 2)
             minima = np.r_[True, filtered_pressures[1:] < filtered_pressures[:-1]] & \
                      np.r_[filtered_pressures[:-1] < filtered_pressures[1:], True]
 
             # discarding local minima that are too close (pick only the smaller one)
-            Tmin = 0.4
+            Tmin = 0.3
             Nmin = int(Tmin / samsize)
             for cnt in range(len(minima)):
                 if np.sum(minima[max(0, cnt-Nmin):min(cnt+Nmin, len(minima)-1)]) > 1:
@@ -63,7 +63,7 @@ class InletBC:
             minima_values = filtered_pressures[minima]
             valid_minima = np.zeros_like(minima_values, dtype=bool)
             for cnt, value in enumerate(minima_values):
-                threshold_value = 1.2*np.min(minima_values[max(0, cnt-1):min(cnt+1, len(minima_values)-1)])
+                threshold_value = 1.25*np.min(minima_values[max(0, cnt-1):min(cnt+1, len(minima_values)-1)])
                 valid_minima[cnt] = (value <= threshold_value)
             minima = minima[valid_minima]
 
@@ -74,14 +74,14 @@ class InletBC:
             # import matplotlib.pyplot as plt
             # plt.figure()
             # ax = plt.axes()
-            # ax.plot(self.times, self.pressure_values)
+            # ax.plot(self.times, filtered_pressures)
             # ax.plot(self.times[minima], self.pressure_values[minima], 'ro')
             # plt.show()
 
             if len(minima) <= self.problem_data.starting_minima:
                 raise ValueError(f"Invalid starting minima index! "
                                  f"In the interval [{self.problem_data.t0}, {self.problem_data.T}] the pressure "
-                                 f"exhibits only {len(minima)} minima, so it is not possible to start from  the minima "
+                                 f"exhibits only {len(minima)} minima, so it is not possible to start from the minima "
                                  f"number {self.problem_data.starting_minima}!")
 
             self.pressure_values = self.pressure_values[minima[self.problem_data.starting_minima]:]
