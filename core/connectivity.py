@@ -3,7 +3,7 @@ from numpy import linalg
 
 
 # we need to look for the position of the bifurcations
-def build_slices(portions, tol, maxlength):
+def build_slices(portions, tol, maxlength, inlet_name):
     newportions = []
     bifurcations = find_bifurcations(portions, tol)
     for portion in portions:
@@ -17,13 +17,13 @@ def build_slices(portions, tol, maxlength):
                 bifurcations = joints
 
     bifurcations = simplify_bifurcations(bifurcations, tol)
-    bifurcations, connectivity = build_connectivity(newportions, bifurcations, tol)
+    bifurcations, connectivity = build_connectivity(newportions, bifurcations, tol, inlet_name)
 
     return newportions, bifurcations, connectivity
 
 
 # code: 1 inlet node, -1 outlet node, 2 global input, 3,4,..., outlet nodes
-def build_connectivity(portions, bifurcations, tol):
+def build_connectivity(portions, bifurcations, tol, inlet_name):
     nportions = len(portions)
     nbifurcations = len(bifurcations)
 
@@ -47,6 +47,9 @@ def build_connectivity(portions, bifurcations, tol):
         bifone = np.where(connectivity[:, porindex] == 1)
         # then, this portion has a global inlet
         if bifone[0].shape[0] == 0:
+            if portions[porindex].pathname != inlet_name:
+                raise ValueError(f"Invalid inlet recognized in vessel {portions[porindex].pathname}, "
+                                 f"while inlet is expected in vessel {inlet_name}")
             bifurcations = np.vstack([bifurcations, portions[porindex].coords[0, :]])
             newconn = np.zeros([1, nportions])
             newconn[0, porindex] = 2

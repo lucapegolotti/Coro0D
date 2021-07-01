@@ -81,17 +81,29 @@ class VesselPortion:
         self.total_outlet_capacitance = capacitance
         return
 
-    # Note: this function should only be called when the path_ids still correspond
-    # to the indices of the coordinates! Namely, the vessel must have been just
-    # read from file.
-    # Contours correspond to a sparse number of coords. Here we interpolate the radii
-    # in between through linear interpolation.
     def add_contours(self, contours):
+        """
+        Note: this function should only be called when the path_ids still correspond
+        to the indices of the coordinates! Namely, the vessel must have been just
+        read from file.
+        Contours correspond to a sparse number of coords. Here we interpolate the radii
+        in between through linear interpolation.
+
+        :param contours:
+        :type contours:
+        :return:
+        :rtype:
+        """
         ncoords = self.coords.shape[0]
         ncontours = len(contours)
         self.contours = [None] * ncoords
         self.radii = np.zeros([ncoords, 1])
-        for icont in range(0, ncontours):
+
+        if contours[-1].id_path >= ncoords:
+            raise ValueError("Invalid segmentation! The segmentation contours are longer than "
+                             "the corresponding centerline paths!")
+
+        for icont in range(ncontours):
             curid = contours[icont].id_path
             self.contours[curid] = contours[icont]
             self.radii[curid] = contours[icont].radius
@@ -103,8 +115,8 @@ class VesselPortion:
                 nextradius = contours[icont + 1].radius
                 for jcoord in range(curid, nextid):
                     jarclength = self.arclength[jcoord]
-                    curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * (
-                                nextradius - self.radii[curid])
+                    curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * \
+                                (nextradius - self.radii[curid])
                     self.radii[jcoord] = curradius
 
         return

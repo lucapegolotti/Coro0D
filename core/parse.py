@@ -23,7 +23,7 @@ def parse_vessels(fdr, problem_data):
             path = parse_single_path(os.path.join(fdr, "Paths", filename), filename[:-4],
                                      coeff, problem_data.inlet_name)
             if path is not None:
-                filenamectgr = filename[0:-4] + ".ctgr"
+                filenamectgr = filename[:-4] + ".ctgr"
                 path = parse_single_segmentation(os.path.join(fdr, "Segmentations", filenamectgr), path,
                                                  coeff, problem_data.inlet_name)
                 if path is not None:
@@ -46,7 +46,7 @@ def open_xml(namefile):
 def parse_single_path(namefile, pathname, coeff, inlet_name):
 
     if namefile[-4:] != ".pth":
-        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing paths.")
+        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing Paths.")
         return
 
     tree = open_xml(namefile)
@@ -85,7 +85,7 @@ def parse_single_path(namefile, pathname, coeff, inlet_name):
 def parse_single_segmentation(namefile, vessel, coeff, inlet_name):
 
     if namefile[-5:] != ".ctgr":
-        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing segmentations.")
+        print(f"Invalid filename {namefile} in Paths/ folder! Ignoring it while parsing Segmentations.")
         return
 
     tree = open_xml(namefile)
