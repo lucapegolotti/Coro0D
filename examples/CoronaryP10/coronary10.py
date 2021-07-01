@@ -37,7 +37,7 @@ class ProblemData:
         # initial time
         self.t0 = 0.0
         # final time
-        self.T = 3
+        self.T = 3.0
         # ramp rime
         self.t0ramp = -0.3
         # index of the first minima to be considered
@@ -53,11 +53,11 @@ def main():
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
+    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity)
 
     coeff_resistance = 0.995
-    coeff_capacitance = 0.6
+    coeff_capacitance = 0.2
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
@@ -69,7 +69,7 @@ def main():
                           folder=fdr,
                           problem_data=pd,
                           coronary=coronary,
-                          distal_pressure_coeff=1.05,
+                          distal_pressure_coeff=0.9,
                           distal_pressure_shift=10)
 
     ode_system = ODESystem(blocks, connectivity, bcmanager)
@@ -81,7 +81,10 @@ def main():
                    inlet_index=bcmanager.inletindex)
 
     plot_solution(solutions, times, pd.t0, pd.T, chunks, 8, 'Q')
-    show_inlet_vs_distal_pressure(bcmanager, 0, 1)
+    show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
+
+    plot_solution(solutions, times, pd.t0, pd.T, chunks, bcmanager.inletindex, 'Pin')
+    plot_solution(solutions, times, pd.t0, pd.T, chunks, 7, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]

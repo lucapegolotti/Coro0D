@@ -38,7 +38,7 @@ class ProblemData:
         # initial time
         self.t0 = 0.0
         # final time
-        self.T = 10
+        self.T = 10.0
         # ramp rime
         self.t0ramp = -0.3
         # index of the first minima to be considered
@@ -54,12 +54,15 @@ def main():
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
+    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength, pd.inlet_name)
+    plot_vessel_portions(chunks, bifurcations, connectivity)
+
     coeff_resistance = 1.057
     coeff_capacitance = 0.25
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
+
     blocks = create_physical_blocks(chunks, model_type='Windkessel2', problem_data=pd)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",

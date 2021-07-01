@@ -54,13 +54,15 @@ def main():
     coronary = "right"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
+    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity)
+
     coeff_resistance = 0.98
     coeff_capacitance = 0.6
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
+
     blocks = create_physical_blocks(chunks, model_type='Windkessel2', problem_data=pd)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
