@@ -46,6 +46,10 @@ class ProblemData:
         self.units = "cm"
         # name of the inlet branch
         self.inlet_name = 'LAD'
+        # array of positions of the stenoses
+        self.stenoses = dict()
+        self.stenoses['LAD'] = [19, 20]
+        self.stenoses['LCX'] = [12, 13, 14]
 
 
 def main():
@@ -53,7 +57,7 @@ def main():
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength, pd.inlet_name)
+    chunks, bifurcations, connectivity = build_slices(paths, pd.stenoses, pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity)
 
     coeff_resistance = 0.995
@@ -62,7 +66,7 @@ def main():
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', problem_data=pd)
+    blocks = create_physical_blocks(chunks, model_type='Windkessel2', problem_data=pd, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
                           outletbc_type="coronary",
@@ -80,11 +84,11 @@ def main():
     show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
                    inlet_index=bcmanager.inletindex)
 
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, 8, 'Q')
+    plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
     show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, bcmanager.inletindex, 'Pin')
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, 7, 'Pout')
+    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 11, 'Pout')
+    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 20, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]

@@ -47,6 +47,8 @@ class ProblemData:
         self.units = "mm"
         # name of the inlet branch
         self.inlet_name = 'LAD'
+        # array of positions of the stenoses
+        self.stenoses = np.array([])
 
 
 def main():
@@ -54,7 +56,7 @@ def main():
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength, pd.inlet_name)
+    chunks, bifurcations, connectivity = build_slices(paths, pd.stenoses, pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity)
 
     coeff_resistance = 1.057
