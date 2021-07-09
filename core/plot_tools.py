@@ -21,13 +21,15 @@ def plot_vessel_portions(portions, bifurcations=None, connectivity=None, fig=Non
     if fig is None and ax is None:
         fig, ax = create_fig()
         show_plot = True
+
     n = len(portions)
     lines = []
     itercolor = False
     if color is None:
         itercolor = True
         color = iter(cm.jet(np.linspace(0, 1, n)))
-    for i in range(0, n):
+
+    for i in range(n):
         if itercolor:
             c = next(color)
         else:
@@ -82,6 +84,8 @@ def plot_bifurcations(bifurcations, connectivity, fig, ax):
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='red')
             elif np.where(connectivity[i, :] > 2)[0].shape[0] == 1:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='blue')
+            elif np.where(np.abs(connectivity[i, :]) == 0.5)[0].shape[0] == 1:
+                ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='yellow')
             else:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='green')
 
@@ -119,6 +123,27 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     ax2.set_xlim([t0, T])
 
     return fig, ax1, ax2
+
+
+def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
+    fig = plt.figure()
+
+    if variable_name == 'Pin':
+        variable_index = 0
+    elif variable_name == 'Pout':
+        variable_index = 1
+    else:
+        raise ValueError(f"Unknown variable name {variable_name}")
+
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(times, solutions[portion_index * 3 + variable_index, :] /
+                   solutions[BCmanager.inletindex * 3 + variable_index, :])
+    ax.set_title("FFR, portion: " + str(portion_index))
+    ax.set_xlabel("time [s]")
+    ax.set_ylabel("FFR")
+    ax.set_xlim([t0, T])
+
+    return fig, ax
 
 
 def show_animation(solutions, times, t0, portions, variable_name, resample, inlet_index=None):

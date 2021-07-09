@@ -9,6 +9,7 @@ class VesselPortion:
             coords = np.hstack([np.c_[xs], np.c_[ys], np.c_[zs]])
             self.set_coords(coords)
         self.pathname = pathname
+        self.isStenotic = False
 
         return
 
@@ -96,6 +97,7 @@ class VesselPortion:
         """
         ncoords = self.coords.shape[0]
         ncontours = len(contours)
+        self.segmented_contours = contours
         self.contours = [None] * ncoords
         self.radii = np.zeros([ncoords, 1])
 
@@ -170,20 +172,29 @@ class VesselPortion:
     def compute_R(self, viscosity):
         self.compute_mean_radius()
         self.R = float(128 * viscosity * self.arclength[-1] /
-                       (math.pi * ((2 * self.mean_radius) ** 4)))
+                       (np.pi * ((2 * self.mean_radius) ** 4)))
         return self.R
 
     def compute_C(self, E, thickness_ratio):
         self.compute_mean_radius()
-        self.C = float(math.pi * ((2 * self.mean_radius) ** 3) * self.arclength[-1] /
+        self.C = float(np.pi * ((2 * self.mean_radius) ** 3) * self.arclength[-1] /
                        (4 * E * thickness_ratio * (2 * self.mean_radius)))
         return self.C
 
     def compute_L(self, density):
         self.compute_mean_radius()
         self.L = float(4 * density * self.arclength[-1] /
-                       (math.pi * (2 * self.mean_radius) ** 2))
+                       (np.pi * (2 * self.mean_radius) ** 2))
         return self.L
+
+    def compute_R2(self, density, r0):
+        self.compute_mean_radius()
+        Kt = 1.5
+        self.R2 = float((Kt * density) /
+                        (2 * np.pi**2 * r0**4) *
+                        ((r0 / self.mean_radius)**2 - 1)**2)
+
+        return self.R2
 
     def compute_Ra(self):
         return 0.32 * self.total_outlet_resistance

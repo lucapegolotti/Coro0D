@@ -11,8 +11,10 @@ class RCCalculator:
         self.compute_total_resistance()
         if self.coronary == "left":
             self.total_capacitance = 3.6 * 1e-5 * self.coeff_capacitance
-        else:
+        elif self.coronary == "right":
             self.total_capacitance = 2.5 * 1e-5 * self.coeff_capacitance
+        else:
+            raise ValueError("Coronary type must be marked as 'left' or 'right'")
 
         return
 

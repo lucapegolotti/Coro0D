@@ -21,7 +21,7 @@ class ODESystem:
     def assemble_system_matrix_dot(self):
         nblocks = len(self.blocks)
         smatrix_dot = np.zeros([self.nvariables, self.nvariables])
-        for i in range(0, nblocks):
+        for i in range(nblocks):
             vecdot = self.blocks[i].model.get_vector_dot()
             smatrix_dot[i, 3 * i + 0] = vecdot[0]
             smatrix_dot[i, 3 * i + 1] = vecdot[1]
@@ -45,10 +45,10 @@ class ODESystem:
             isboundary = True
             for iflag in range(nblocks):
                 # incoming flow
-                if connectivity[iflag] == 1:
+                if connectivity[iflag] in {0.5, 1}:
                     isboundary = False
                     smatrix[constraintrow, 3 * iflag + 2] = 1
-                if connectivity[iflag] == -1:
+                if connectivity[iflag] in {-1, -0.5}:
                     isboundary = False
                     smatrix[constraintrow, 3 * iflag + 2] = -1
             if not isboundary:
@@ -56,16 +56,16 @@ class ODESystem:
 
             # equality of pressure: we look for all blocks with +-1 and we
             # add one constraint for every couple
-            indices = np.where(np.abs(connectivity) == 1)[0]
+            indices = np.hstack([np.where(np.abs(connectivity) == 0.5)[0], np.where(np.abs(connectivity) == 1)[0]])
             nindices = indices.shape[0]
             for i in range(1, nindices):
-                if connectivity[indices[0]] == 1:
+                if connectivity[indices[0]] in {0.5, 1}:
                     # + 0 corresponds to inlet
                     smatrix[constraintrow, 3 * indices[0] + 0] = 1
                 else:
                     # + 1 corresponds to outlet
                     smatrix[constraintrow, 3 * indices[0] + 1] = 1
-                if connectivity[indices[i]] == 1:
+                if connectivity[indices[i]] in {0.5, 1}:
                     # + 0 corresponds to inlet
                     smatrix[constraintrow, 3 * indices[i] + 0] = -1
                 else:
