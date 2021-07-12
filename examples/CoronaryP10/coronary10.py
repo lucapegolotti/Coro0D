@@ -48,7 +48,7 @@ class ProblemData:
         self.inlet_name = 'LAD'
         # array of positions of the stenoses
         self.stenoses = dict()
-        self.stenoses['LAD'] = [19, 20]
+        self.stenoses['LAD'] = [19, 20, 21]
         self.stenoses['LCX'] = [12, 13, 14]
 
 
@@ -60,7 +60,7 @@ def main():
     chunks, bifurcations, connectivity = build_slices(paths, pd.stenoses, pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity)
 
-    coeff_resistance = 0.995
+    coeff_resistance = 0.985
     coeff_capacitance = 0.2
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
@@ -88,7 +88,7 @@ def main():
     show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
     plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 11, 'Pout')
-    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 20, 'Pout')
+    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 21, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]

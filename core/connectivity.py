@@ -160,10 +160,11 @@ def find_stenoses(portions, stenoses_map):
 
 def identify_stenoses(portions, stenoses, tol):
 
-    for portion in portions:
-        if (np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol) and \
-                (np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol):
-            portion.isStenotic = True
+    if stenoses is not None:
+        for portion in portions:
+            if (np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol) and \
+                    (np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol):
+                portion.isStenotic = True
 
     return
 
