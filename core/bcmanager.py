@@ -68,13 +68,13 @@ class BCManager:
 
         return
 
-    def add_bcs(self, matrix_dot):
-        self.inletbc.apply_bc_matrix(matrix_dot, self.starting_row)
+    def add_bcs(self, matrix):
+        self.inletbc.apply_bc_matrix(matrix, self.starting_row)
 
         curcol = len(self.portions) * 3
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):
-            currow += self.outletbcs[ibc].apply_bc_matrix(matrix_dot,
+            currow += self.outletbcs[ibc].apply_bc_matrix(matrix,
                                                           currow,
                                                           curcol)
 
@@ -82,8 +82,25 @@ class BCManager:
 
         return
 
-    def apply_bc_vector(self, vector, time):
+    def apply_inletbc_vector(self, vector, time):
         self.inletbc.apply_bc_vector(vector, time, self.starting_row)
+        return
+
+    def apply_bc_vector(self, vector, time):
+        self.apply_inletbc_vector(vector, time)
+
+        currow = self.starting_row + 1
+        for ibc in range(len(self.outletbcs)):
+            currow += self.outletbcs[ibc].apply_bc_vector(vector, time, currow)
+
+        return
+
+    def apply_inlet0bc_vector(self, vector, time):
+        self.inletbc.apply_0bc_vector(vector, time, self.starting_row)
+        return
+
+    def apply_0bc_vector(self, vector, time):
+        self.apply_inlet0bc_vector(vector, time)
 
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):

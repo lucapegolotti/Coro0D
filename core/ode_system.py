@@ -16,6 +16,8 @@ class ODESystem:
         bc_manager.add_bcs_dot(self.smatrix_dot)
         bc_manager.add_bcs(self.smatrix)
 
+        self.is_linear = all([not block.isStenotic for block in blocks])
+
         return
 
     def assemble_system_matrix_dot(self):
@@ -38,6 +40,12 @@ class ODESystem:
             smatrix[i, 3 * i + 1] = vecdot[1]
             smatrix[i, 3 * i + 2] = vecdot[2]
 
+        self.add_constraints(smatrix)
+
+        return smatrix
+
+    def add_constraints(self, matrix):
+        nblocks = len(self.blocks)
         constraintrow = nblocks
         # add constraints
         for connectivity in self.connectivity:
@@ -47,10 +55,10 @@ class ODESystem:
                 # incoming flow
                 if connectivity[iflag] in {0.5, 1}:
                     isboundary = False
-                    smatrix[constraintrow, 3 * iflag + 2] = 1
+                    matrix[constraintrow, 3 * iflag + 2] = 1
                 if connectivity[iflag] in {-1, -0.5}:
                     isboundary = False
-                    smatrix[constraintrow, 3 * iflag + 2] = -1
+                    matrix[constraintrow, 3 * iflag + 2] = -1
             if not isboundary:
                 constraintrow += 1
 
@@ -61,42 +69,39 @@ class ODESystem:
             for i in range(1, nindices):
                 if connectivity[indices[0]] in {0.5, 1}:
                     # + 0 corresponds to inlet
-                    smatrix[constraintrow, 3 * indices[0] + 0] = 1
+                    matrix[constraintrow, 3 * indices[0] + 0] = 1
                 else:
                     # + 1 corresponds to outlet
-                    smatrix[constraintrow, 3 * indices[0] + 1] = 1
+                    matrix[constraintrow, 3 * indices[0] + 1] = 1
                 if connectivity[indices[i]] in {0.5, 1}:
                     # + 0 corresponds to inlet
-                    smatrix[constraintrow, 3 * indices[i] + 0] = -1
+                    matrix[constraintrow, 3 * indices[i] + 0] = -1
                 else:
                     # + 1 corresponds to outlet
-                    smatrix[constraintrow, 3 * indices[i] + 1] = -1
+                    matrix[constraintrow, 3 * indices[i] + 1] = -1
                 constraintrow += 1
 
         self.rowbcs = constraintrow
 
-        # # apply bcs to matrix
-        # # find first row with all zeros
-        # self.inletbcrow = constraintrow
-        #
-        # # find index inlet block
-        # indexinletblock = np.where(self.connectivity == 2)
-        # if self.use_inlet_pressure:
-        #     # in this case we fix the inlet pressure
-        #     self.bdfmatrix[self.inletbcrow,indexinletblock[1] * 3 + 0] = 1
-        # else:
-        #     # in this case we fix the inlet flowrate
-        #     self.bdfmatrix[self.inletbcrow,indexinletblock[1] * 3 + 2] = 1
-        #
-        # # find max outlet flag
-        # maxoutletflag = int(np.max(self.connectivity))
-        #
-        # self.outletbcrows = []
-        # for flag in range(3, maxoutletflag + 1):
-        #     currow = self.inletbcrow + flag - 2
-        #     indexoutletblock = np.where(self.connectivity == flag)
-        #     self.bdfmatrix[currow,indexoutletblock[1] * 3 + 1] = 1
-        #     self.outletbcrows.append(currow)
-        #
+        return
 
-        return smatrix
+    def evaluate_nonlinear(self, sol):
+        nblocks = len(self.blocks)
+        nlvec = np.zeros([self.nvariables, 1])
+        for i in range(nblocks):
+            nlvec[i] = self.blocks[i].model.evaluate_nonlinear(sol, i) \
+                       if self.blocks[i].isStenotic else 0
+
+        return nlvec
+
+    def evaluate_jacobian_nonlinear(self, sol):
+        nblocks = len(self.blocks)
+        jacmatrix = np.zeros([self.nvariables, self.nvariables])
+        for i in range(nblocks):
+            jacmatrix[i, 3*i:3*(i+1)] = self.blocks[i].model.evaluate_jacobian_nonlinear(sol, i) \
+                                        if self.blocks[i].isStenotic else np.zeros(3)
+
+        return jacmatrix
+
+
+

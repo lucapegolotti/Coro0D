@@ -50,8 +50,8 @@ def plot_vessel_portions(portions, bifurcations=None, connectivity=None, fig=Non
     if bifurcations is not None:
         plot_bifurcations(bifurcations, connectivity, fig, ax)
 
-    if show_plot:
-        plot_show()
+    # if show_plot:
+    #     plot_show()
 
     return lines
 
@@ -136,12 +136,16 @@ def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
         raise ValueError(f"Unknown variable name {variable_name}")
 
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(times, solutions[portion_index * 3 + variable_index, :] /
-                   solutions[BCmanager.inletindex * 3 + variable_index, :])
+    ffr = solutions[portion_index * 3 + variable_index, 1:] / solutions[BCmanager.inletindex * 3 + variable_index, 1:]
+    ax.plot(times[1:], ffr)
+    ax.plot(times[1:], np.mean(ffr)*np.ones_like(times[1:]), '-.', linewidth=2)
     ax.set_title("FFR, portion: " + str(portion_index))
     ax.set_xlabel("time [s]")
     ax.set_ylabel("FFR")
     ax.set_xlim([t0, T])
+    # ax.set_ylim([np.min(ffr) - 0.05, np.max(ffr) + 0.05])
+
+    print(f"\nAverage FFR in portion {portion_index}: {np.mean(ffr)}")
 
     return fig, ax
 
@@ -161,7 +165,7 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
     # we keep only the solutions from t0 on
     indices = np.where(times >= t0)[0]
     times = times[indices]
-    solutions = solutions[0:nportions * 3, indices]
+    solutions = solutions[:nportions * 3, indices]
 
     times = times[::resample]
 

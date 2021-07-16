@@ -15,11 +15,6 @@ class InletBC:
         self.problem_data = problem_data
         self.parse_inlet_function()
 
-        # self.pressure_values = np.zeros(0)
-        # self.times = np.zeros(0)
-        # self.pressurespline = tuple()
-        # self.indices_minpressures = np.zeros(0, dtype=np.int)
-
         return
 
     def parse_inlet_function(self):
@@ -84,6 +79,8 @@ class InletBC:
                                  f"exhibits only {len(minima)} minima, so it is not possible to start from the minima "
                                  f"number {self.problem_data.starting_minima}!")
 
+            print(f"Effective initial time: {minima[self.problem_data.starting_minima] * samsize} s\n")
+
             self.pressure_values = self.pressure_values[minima[self.problem_data.starting_minima]:]
             self.times = np.subtract(self.times[minima[self.problem_data.starting_minima]:],
                                      self.times[minima[self.problem_data.starting_minima]])
@@ -114,6 +111,10 @@ class InletBC:
         vector[row] = self.inlet_function(time)
         return
 
+    def apply_0bc_vector(self, vector, time, row):
+        vector[row] = 0
+        return
+
     def evaluate_ramp(self, time):
         t0 = self.problem_data.t0
         t0ramp = self.problem_data.t0ramp
@@ -124,3 +125,50 @@ class InletBC:
         if time < self.problem_data.t0:
             return self.evaluate_ramp(time)
         return splev(time, self.pressurespline, der=0)
+
+    @staticmethod
+    def compute_HR(folder, problem_data):
+        file = os.path.join(folder, os.path.normpath("Data/measures.csv"))
+        samsize = 0.01
+        pressure_values = []
+        with open(file, newline='') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            for row in spamreader:
+                # we do this to avoid converting the header of the csv
+                try:
+                    # we multiply by 1333.2 because the pressure is in mmHg
+                    # but we use cgs
+                    pressure_values.append(float(row[0].split('\t')[0]) * 1333.2)
+                except Exception:
+                    pass
+        pressure_values = np.array(pressure_values)
+
+        # we find the local minima. First we apply a lowpass filter
+        filtered_pressures = savgol_filter(pressure_values, 13, 2)
+        minima = np.r_[True, filtered_pressures[1:] < filtered_pressures[:-1]] & \
+                 np.r_[filtered_pressures[:-1] < filtered_pressures[1:], True]
+
+        # discarding local minima that are too close (pick only the smaller one)
+        Tmin = 0.3
+        Nmin = int(Tmin / samsize)
+        for cnt in range(len(minima)):
+            if np.sum(minima[max(0, cnt - Nmin):min(cnt + Nmin, len(minima) - 1)]) > 1:
+                true_minima_index = np.argmin(filtered_pressures[max(0, cnt-Nmin):min(cnt+Nmin, len(minima) - 1)]) + \
+                                    max(0, cnt-Nmin)
+                minima[max(0, cnt-Nmin):min(cnt+Nmin, len(minima) - 1)] = False
+                minima[true_minima_index] = True
+        minima = np.where(minima)[0]
+
+        # discarding minima that are too high (compared to the previous and the next)
+        minima_values = filtered_pressures[minima]
+        valid_minima = np.zeros_like(minima_values, dtype=bool)
+        for cnt, value in enumerate(minima_values):
+            threshold_value = 1.25 * np.min(minima_values[max(0, cnt - 1):min(cnt + 1, len(minima_values) - 1)])
+            valid_minima[cnt] = (value <= threshold_value)
+        minima = minima[valid_minima]
+
+        # discarding minima occurring before t0 and after T
+        minima = minima[(minima >= problem_data.t0 / samsize) & (minima <= problem_data.T / samsize)]
+        HR = len(minima) / ((minima[-1] - minima[0]) * samsize) * 60.0
+
+        return HR

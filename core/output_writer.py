@@ -96,7 +96,7 @@ class OutputWriter:
         outfile.close()
 
         return
-        
+
     def write_inlet_outlets_flow_pressures(self, times, solutions, portions, bc_manager):
         labels = "time,"
         indices = [bc_manager.inletindex]
@@ -109,17 +109,17 @@ class OutputWriter:
         labels = labels[:-1]
 
         flows = solutions[3 * np.array(indices) + 2, :]
-        M = np.vstack((times,flows))
+        M = np.vstack((times, flows))
         np.savetxt(self.output_fdr + "/flows_res.csv",
                    M.T, delimiter=",",
-                   header = labels)
+                   header=labels)
 
         pressures1 = solutions[3 * np.array(bc_manager.inletindex) + 0, :]
         pressures2 = solutions[3 * np.array(bc_manager.outletindices) + 1, :]
-        M = np.vstack((times,pressures1,pressures2))
+        M = np.vstack((times, pressures1, pressures2))
         np.savetxt(self.output_fdr + "/pressure_res.csv",
                    M.T, delimiter=",",
-                   header = labels)
+                   header=labels)
 
     def write_thickess_caps(self, portions):
         outfile = open(self.output_fdr + "/thickness.txt", "w")

@@ -33,9 +33,9 @@ class OutletBC:
             matrix[row + 0, col + 4] = 1 / (Ramicro * Ca)
 
             # Cim \dot{K2} = (K1 - K2 - Pd) / (Ramicro) - (K2 + Pd) / (Rvmicro + Rv)
-            matrix[row + 1, col + 1] = -1 / (Cim) * (1 / Ramicro + 1 / (Rvmicro + Rv))
+            matrix[row + 1, col + 1] = -1 / Cim * (1 / Ramicro + 1 / (Rvmicro + Rv))
             matrix[row + 1, col + 3] = 1 / (Ramicro * Cim)
-            matrix[row + 1, col + 4] = -1 / (Cim) * (1 / Ramicro + 1 / (Rvmicro + Rv))
+            matrix[row + 1, col + 4] = -1 / Cim * (1 / Ramicro + 1 / (Rvmicro + Rv))
         elif self.bc_type == "resistance":
             Ra = self.portion.compute_Ra() + self.portion.compute_Rv() + \
                  self.portion.compute_Ramicro() + self.portion.compute_Rvmicro()
