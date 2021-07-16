@@ -7,7 +7,7 @@ from core.connectivity import *
 from core.plot_tools import *
 from core.physical_block import *
 from core.ode_system import ODESystem
-from core.bdf import BDF2
+from core.bdf import *
 from core.bcmanager import BCManager
 from core.rc_calculator import RCCalculator
 from scipy.integrate import simps
@@ -33,7 +33,7 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.005
+        self.deltat = 0.00025
         # initial time
         self.t0 = 0.0
         # final time
@@ -51,9 +51,26 @@ class ProblemData:
         self.stenoses['LAD'] = [19, 20, 21]
         self.stenoses['LCX'] = [12, 13, 14]
 
+        return
+
+
+class SolverData:
+    def __init__(self):
+        # tolerance on the relative error in Newton's iterations
+        self.tol = 1e-6
+        # minimal absolute error in Newton's iterations
+        self.min_err = 1e-15
+        # maximal number of Newton's iterations
+        self.max_iter = 100
+        # treatment of the non-linear term
+        self.strategy = "implicit"
+
+        return
+
 
 def main():
     pd = ProblemData()
+    sd = SolverData()
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
@@ -66,7 +83,8 @@ def main():
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', problem_data=pd, connectivity=connectivity)
+    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='None',
+                                    problem_data=pd, folder=fdr, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
                           outletbc_type="coronary",
@@ -77,15 +95,17 @@ def main():
                           distal_pressure_shift=10)
 
     ode_system = ODESystem(blocks, connectivity, bcmanager)
-    bdf = BDF2(ode_system, connectivity, pd, bcmanager)
+    bdf = BDF2(ode_system, connectivity, pd, sd, bcmanager)
     solutions, times = bdf.run()
 
-    show_inlet_flow_vs_pressure(solutions, times, bcmanager, 0, 2)
-    show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
-                   inlet_index=bcmanager.inletindex)
+    # show_inlet_flow_vs_pressure(solutions, times, bcmanager, 0, 2)
+    # show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
+    #                inlet_index=bcmanager.inletindex)
 
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
-    show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Pin')
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Pout')
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
+    # show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
     plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 11, 'Pout')
     plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 21, 'Pout')
@@ -93,8 +113,8 @@ def main():
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]
     Qin = solutions[bcmanager.inletindex * 3 + 2, positive_times]
-    print("Flow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
-    print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
+    print("\nFlow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]\n")
 
     ow = OutputWriter("Output", bcmanager, chunks, pd)
     ow.write_outlet_rc()
