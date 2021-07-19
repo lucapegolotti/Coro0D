@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.integrate import simps
-import math
 
 
 class VesselPortion:
@@ -72,7 +71,7 @@ class VesselPortion:
     def compute_area_outlet(self):
         # find last non zero radius
         index = np.where(self.radii > 0)[0][-1]
-        return math.pi * self.radii[index] ** 2
+        return np.pi * self.radii[index] ** 2
 
     def set_total_outlet_resistance(self, resistance):
         self.total_outlet_resistance = resistance
@@ -150,6 +149,7 @@ class VesselPortion:
         newvessel.set_coords(self.coords[begin:end + 1, :])
         newvessel.contours = self.contours[begin:end + 1]
         newvessel.radii = self.radii[begin:end + 1, :]
+        newvessel.isStenotic = self.isStenotic
         return newvessel
 
     def show_me(self):
@@ -166,122 +166,6 @@ class VesselPortion:
         if hasattr(self, "arclength"):
             print("arclength:")
             print(self.arclength)
-
-    # resistance, capacitance, and inductance where taken from
-    # "Design of a 0D image-based coronary blood flow model" by Uus, Liatsis
-    def compute_R(self, viscosity):
-        self.compute_mean_radius()
-        self.R = float(128 * viscosity * self.arclength[-1] /
-                       (np.pi * ((2 * self.mean_radius) ** 4)))
-        return self.R
-
-    def compute_C(self, E, thickness_ratio):
-        self.compute_mean_radius()
-        self.C = float(np.pi * ((2 * self.mean_radius) ** 3) * self.arclength[-1] /
-                       (4 * E * thickness_ratio * (2 * self.mean_radius)))
-        return self.C
-
-    def compute_L(self, density):
-        self.compute_mean_radius()
-        self.L = float(4 * density * self.arclength[-1] /
-                       (np.pi * (2 * self.mean_radius) ** 2))
-        return self.L
-
-    # parameters of the Young-Tsai (1973) 0D stenosis model, taken from
-    # "Reduced Order Model for Transstenotic Pressure Drop in Coronary Arteries" by Mirramezani et al. (2019)
-    def compute_R_YT(self, viscosity, r0):
-        self.compute_min_radius()
-        La = 0.83 * self.arclength[-1] + 3.28 * self.min_radius
-        Kv = 16 * La / r0 * (r0/self.min_radius)**4
-        self.R_YT = float((viscosity * Kv) /
-                          (2 * np.pi * r0**3))
-
-        return self.R_YT
-
-    def compute_R2_YT(self, density, r0):
-        self.compute_min_radius()
-        Kt = 1.52
-        self.R2_YT = float((Kt * density) /
-                           (2 * np.pi**2 * r0**4) *
-                           ((r0/self.min_radius)**2 - 1)**2)
-
-        return self.R2_YT
-
-    def compute_L_YT(self, density, r0):
-        Ku = 1.2
-        self.L_YT = float((Ku * density * self.arclength[-1]) /
-                          (np.pi * r0**2))
-
-        return self.L_YT
-
-    # parameters of the Itu-Sharma (2012) 0D stenosis model, taken from
-    # "Reduced Order Model for Transstenotic Pressure Drop in Coronary Arteries" by Mirramezani et al. (2019)
-    def compute_R_IS(self, density, viscosity, HR, r0):
-        self.compute_min_radius()
-        omega = HR * 2 * np.pi / 60.0
-        alpha = r0 * np.sqrt(density * omega / viscosity)
-        Kv = 1 + 0.053 * self.min_radius / r0 * alpha**2
-
-        posindices = np.where(self.radii > 0)
-        posradii = self.radii[posindices]
-        posarclength = self.arclength[posindices]
-        posarclength = np.subtract(posarclength, posarclength[0])
-        # we compute the mean radius using the integral over the arclength
-        integral = simps(posradii**(-4), posarclength)
-        Rvc = (8 * viscosity / np.pi) * integral
-
-        self.R_IS = Kv * Rvc
-
-        return self.R_IS
-
-    def compute_R2_IS(self, density, r0):
-        self.R2_IS = self.compute_R2_YT(density, r0)
-
-        return self.R2_IS
-
-    def compute_L_IS(self, density):
-        Ku = 1.2
-
-        posindices = np.where(self.radii > 0)
-        posradii = self.radii[posindices]
-        posarclength = self.arclength[posindices]
-        posarclength = np.subtract(posarclength, posarclength[0])
-        # we compute the mean radius using the integral over the arclength
-        integral = simps(posradii**(-2), posarclength)
-        Lu = (density / np.pi) * integral
-
-        self.L_IS = Ku * Lu
-
-        return self.L_IS
-
-    # parameters of the Garcia (2005) 0D stenosis model, taken from
-    # "Reduced Order Model for Transstenotic Pressure Drop in Coronary Arteries" by Mirramezani et al. (2019)
-    def compute_R2_G(self, density, r0):
-        self.compute_min_radius()
-        self.R2_G = float((density/2) *
-                          ((r0**2 - self.min_radius**2) / (np.pi * r0**2 * self.min_radius**2))**2)
-
-        return self.R2_G
-
-    def compute_L_G(self, density, r0):
-        self.compute_min_radius()
-        alpha = 6.28
-        beta = 0.5
-        self.L_G = float((alpha * density) /
-                         (np.sqrt(np.pi) * r0) *
-                         ((r0/self.min_radius)**2 - 1)**beta)
-
-        return self.L_G
-
-    # parameters of the Resistance/Windkessel2 model extended to stenoses (no reference)
-    def compute_R2(self, density, r0):
-        self.compute_mean_radius()
-        Kt = 1.5
-        self.R2_WKs = float((Kt * density) /
-                            (2 * np.pi**2 * r0**4) *
-                            ((r0/self.mean_radius)**2 - 1)**2)
-
-        return self.R2_WKs
 
     # parameters of the coronary boundary conditions
     def compute_Ra(self):
@@ -310,8 +194,7 @@ class VesselPortion:
             posarclength = np.subtract(posarclength, posarclength[0])
             # we compute the mean radius using the integral over the arclength
             integrated_radius = simps(posradii, posarclength)
-            # area = simps(np.ones(posradii.shape),posarclength)
-            self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])  # area
+            self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])
 
             return
 

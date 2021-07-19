@@ -26,7 +26,8 @@ class SystemSolver:
             incr = -np.linalg.solve(curJac, curFun)
             sol += incr
 
-            print(f"Newton's method. Iteration: {cnt+1}  -  Relative Error: {err/err0}  -  Absolute Error: {err}")
+            print(f"Newton's method. Iteration: {cnt+1}  -  Relative Error: {err/err0:.2E}  -  "
+                  f"Absolute Error: {err:.2E}")
 
             curFun = fun(sol)
             curJac = jac(sol)
@@ -36,7 +37,8 @@ class SystemSolver:
         if (cnt == self.max_iter and (err / err0 > self.tol or err > self.min_err or np.isnan(err))) or np.isnan(err):
             raise ValueError(f"Newton's method has failed after {cnt} iterations!")
         else:
-            print(f"Newton's method converged after {cnt} iterations! -  Relative Error: {err/err0}  -  Absolute Error: {err}")
+            print(f"Newton's method converged after {cnt} iterations! -  Relative Error: {err/err0:.2E}  -  "
+                  f"Absolute Error: {err:.2E}")
 
         return sol
 

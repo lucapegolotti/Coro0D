@@ -11,49 +11,56 @@ class PhysicalBlock:
 
         # NON-STENOSIS MODEL
         if model_type == "Windkessel2":
-            self.model = Windkessel2(vessel_portion.compute_R(problem_data.viscosity),
-                                     vessel_portion.compute_C(problem_data.E,
-                                                              problem_data.thickness_ratio))
+            # self.model = Windkessel2(vessel_portion.compute_R(problem_data.viscosity),
+            #                          vessel_portion.compute_C(problem_data.E,
+            #                                                   problem_data.thickness_ratio))
+            self.model = Windkessel2(vessel_portion, problem_data)
         elif model_type == "Resistance":
-            self.model = Resistance(vessel_portion.compute_R(problem_data.viscosity))
+            # self.model = Resistance(vessel_portion.compute_R(problem_data.viscosity))
+            self.model = Resistance(vessel_portion, problem_data)
 
         # STENOSIS MODELS
         elif model_type == "YoungTsai":
             assert 'r0' in other_data.keys()
-            self.model = YoungTsai(vessel_portion.compute_R_YT(problem_data.viscosity,
-                                                               other_data['r0']),
-                                   vessel_portion.compute_R2_YT(problem_data.density,
-                                                                other_data['r0']),
-                                   vessel_portion.compute_L_YT(problem_data.density,
-                                                               other_data['r0']))
+            # self.model = YoungTsai(vessel_portion.compute_R_YT(problem_data.viscosity,
+            #                                                    other_data['r0']),
+            #                        vessel_portion.compute_R2_YT(problem_data.density,
+            #                                                     other_data['r0']),
+            #                        vessel_portion.compute_L_YT(problem_data.density,
+            #                                                    other_data['r0']))
+            self.model = YoungTsai(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "Garcia":
             assert 'r0' in other_data.keys()
-            self.model = Garcia(vessel_portion.compute_R2_G(problem_data.density,
-                                                            other_data['r0']),
-                                vessel_portion.compute_L_G(problem_data.density,
-                                                           other_data['r0']))
+            # self.model = Garcia(vessel_portion.compute_R2_G(problem_data.density,
+            #                                                 other_data['r0']),
+            #                     vessel_portion.compute_L_G(problem_data.density,
+            #                                                other_data['r0']))
+            self.model = Garcia(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "ItuSharma":
             assert 'r0' in other_data.keys()
             assert 'HR' in other_data.keys()
-            self.model = ItuSharma(vessel_portion.compute_R_IS(problem_data.density,
-                                                               problem_data.viscosity,
-                                                               other_data['HR'],
-                                                               other_data['r0']),
-                                   vessel_portion.compute_R2_IS(problem_data.density,
-                                                                other_data['r0']),
-                                   vessel_portion.compute_L_IS(problem_data.density))
+            # self.model = ItuSharma(vessel_portion.compute_R_IS(problem_data.density,
+            #                                                    problem_data.viscosity,
+            #                                                    other_data['HR'],
+            #                                                    other_data['r0']),
+            #                        vessel_portion.compute_R2_IS(problem_data.density,
+            #                                                     other_data['r0']),
+            #                        vessel_portion.compute_L_IS(problem_data.density))
+            self.model = ItuSharma(vessel_portion, problem_data, other_data['r0'], other_data['HR'])
         elif model_type == "ResistanceStenosis":
             assert 'r0' in other_data.keys()
-            self.model = ResistanceStenosis(vessel_portion.compute_R(problem_data.viscosity),
-                                            vessel_portion.compute_R2(problem_data.density,
-                                                                      other_data['r0']))
+            # self.model = ResistanceStenosis(vessel_portion.compute_R(problem_data.viscosity),
+            #                                 vessel_portion.compute_R2(problem_data.density,
+            #                                                           other_data['r0']))
+            self.model = ResistanceStenosis(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "Windkessel2Stenosis":
             assert 'r0' in other_data.keys()
-            self.model = Windkessel2Stenosis(vessel_portion.compute_R(problem_data.viscosity),
-                                             vessel_portion.compute_C(problem_data.E,
-                                                                      problem_data.thickness_ratio),
-                                             vessel_portion.compute_R2(problem_data.density,
-                                                                       other_data['r0']))
+            # self.model = Windkessel2Stenosis(vessel_portion.compute_R(problem_data.viscosity),
+            #                                  vessel_portion.compute_C(problem_data.E,
+            #                                                           problem_data.thickness_ratio),
+            #                                  vessel_portion.compute_R2(problem_data.density,
+            #                                                            other_data['r0']))
+            self.model = Windkessel2Stenosis(vessel_portion, problem_data, other_data['r0'])
         else:
             raise NotImplementedError(model_type + " not implemented!")
 

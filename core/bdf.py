@@ -6,6 +6,7 @@ from solver import SystemSolver
 
 class BDF:
     def __init__(self, ode_system, connectivity, problem_data, solver_data, bc_manager):
+        self.name = "BDF"
         self.ode_system = ode_system
         self.connectivity = connectivity
         self.use_inlet_pressure = problem_data.use_inlet_pressure
@@ -38,54 +39,58 @@ class BDF:
     def extrapolated_solution(self, solutions):
         pass
 
-    def run(self):
+    def run(self, times=None, old_solutions=None):
 
-        t = self.t0ramp
-        times = [t]
-        syssize = self.bdfmatrix.shape[0]
-        prev_solutions = [np.zeros([syssize, 1]) for _ in range(self.order())]
-        sols = [np.zeros([syssize, 1])]
+        t = self.t0ramp if times is None else times[-1]
+        syssize = self.lhsmatrix.shape[0]
+
+        times = [t] if times is None else times.tolist()
+        prev_solutions = [np.zeros([syssize, 1]) for _ in range(self.order())] if old_solutions is None \
+                         else [np.array([elem]).T for elem in old_solutions.T.tolist()]
+
+        sols = [np.zeros([syssize, 1])] if old_solutions is None else prev_solutions[:]
         bcvec = np.zeros([syssize, 1])
+
         while t < self.T:
             t += self.deltat
 
-            print('Solving t = ' + "{:.2f}".format(t) + " s")
+            print(f"{self.name}: solving t = {t:.5f} s")
 
             rhs = self.matrix_dot.dot(self.prev_solutions_contribution(prev_solutions))
             self.bc_manager.apply_bc_vector(bcvec, t)
             rhs += self.beta() * self.deltat * bcvec
 
             if self.ode_system.is_linear:
-                u = self.solver.solve_linear(self.bdfmatrix, rhs)
+                u = self.solver.solve_linear(self.lhsmatrix, rhs)
 
             else:
                 if self.solver_strategy == "implicit":
 
-                    # initial_guess = self.solver.solve_linear(self.bdfmatrix, rhs)
+                    # initial_guess = self.solver.solve_linear(self.lhsmatrix, rhs)
                     initial_guess = self.extrapolated_solution(prev_solutions)
-                    initial_guess[self.bc_manager.inletindex*3] = self.bc_manager.inletbc.inlet_function(t)
+                    initial_guess[self.bc_manager.inletindex * 3] = self.bc_manager.inletbc.inlet_function(t)
 
                     def fun(sol):
-                        retVec = self.bdfmatrix.dot(sol)
+                        retVec = self.lhsmatrix.dot(sol)
                         retVec -= self.beta() * self.deltat * self.ode_system.evaluate_nonlinear(sol)
                         retVec -= rhs
                         self.bc_manager.apply_inlet0bc_vector(retVec, t)
                         return retVec
 
                     def jac(sol):
-                        retMat = self.bdfmatrix
-                        # retMat -= self.beta() * self.deltat * self.ode_system.evaluate_jacobian_nonlinear(sol)
+                        retMat = self.lhsmatrix
+                        # retMat += self.beta() * self.deltat * self.ode_system.evaluate_jacobian_nonlinear(sol)
                         return retMat
 
                     u = self.solver.solve_nonlinear(fun, jac, initial_guess)
 
                 elif self.solver_strategy == "semi-implicit":
                     guess = self.extrapolated_solution(prev_solutions)
-                    # guess = self.solver.solve_linear(self.bdfmatrix, rhs)
+                    # guess = self.solver.solve_linear(self.lhsmatrix, rhs)
 
                     nl_rhs = rhs + self.beta() * self.deltat * self.ode_system.evaluate_nonlinear(guess)
 
-                    u = self.solver.solve_linear(self.bdfmatrix, nl_rhs)
+                    u = self.solver.solve_linear(self.lhsmatrix, nl_rhs)
 
                 else:
                     raise ValueError(f"Unrecognized solver strategy {self.solver_strategy}!")
@@ -93,7 +98,7 @@ class BDF:
             if np.isnan(np.linalg.norm(u)):
                 raise ValueError(f"The solution at time {t} features NaNs!")
 
-            sols.append(u)
+            sols.append(u.copy())
             prev_solutions.append(u)
             prev_solutions.pop(0)
             times.append(t)
@@ -104,7 +109,7 @@ class BDF:
         self.matrix_dot = self.ode_system.smatrix_dot
         self.matrix = self.ode_system.smatrix
 
-        self.bdfmatrix = self.matrix_dot - self.deltat * self.beta() * self.matrix
+        self.lhsmatrix = self.matrix_dot - self.deltat * self.beta() * self.matrix
 
         return
 
@@ -112,6 +117,7 @@ class BDF:
 class BDF1(BDF):
     def __init__(self, ode_system, connectivity, problem_data, solver_data, bc_manager):
         super().__init__(ode_system, connectivity, problem_data, solver_data, bc_manager)
+        self.name = "BDF1"
         return
 
     def order(self):
@@ -130,6 +136,11 @@ class BDF1(BDF):
 class BDF2(BDF):
     def __init__(self, ode_system, connectivity, problem_data, solver_data, bc_manager):
         super().__init__(ode_system, connectivity, problem_data, solver_data, bc_manager)
+        self.name = "BDF2"
+
+        self.CN = CN(ode_system, connectivity, problem_data, solver_data, bc_manager)
+        self.CN.set_T(self.t0ramp + self.deltat)
+
         return
 
     def order(self):
@@ -144,21 +155,93 @@ class BDF2(BDF):
     def extrapolated_solution(self, solutions):
         return solutions[-1] * 2.0 - solutions[-2] * 1.0
 
+    def run(self, times=None, old_solutions=None):
+        solutions, times = self.CN.run()
+        solutions, times = super().run(times, solutions)
 
-class BDF3(BDF):
+        return solutions, times
+
+
+class CN:
     def __init__(self, ode_system, connectivity, problem_data, solver_data, bc_manager):
-        super().__init__(ode_system, connectivity, problem_data, solver_data, bc_manager)
+        self.name = "Crank-Nicholson"
+        self.ode_system = ode_system
+        self.connectivity = connectivity
+        self.use_inlet_pressure = problem_data.use_inlet_pressure
+        self.deltat = problem_data.deltat
+        self.t0 = problem_data.t0
+        self.T = problem_data.T
+        self.t0ramp = problem_data.t0ramp
+        self.bc_manager = bc_manager
+        self.setup_system()
+        self.solver = SystemSolver(tol=solver_data.tol,
+                                   min_err=solver_data.min_err,
+                                   max_iter=solver_data.max_iter)
+
         return
 
     def order(self):
-        return 3
+        return 2
 
-    def beta(self):
-        return 6 / 11
+    def setup_system(self):
+        self.matrix_dot = self.ode_system.smatrix_dot
+        self.matrix = self.ode_system.smatrix
 
-    def prev_solutions_contribution(self, solutions):
-        return solutions[-1] * 18 / 11 - solutions[-2] * 9 / 11 + solutions[-3] * 2 / 11
+        self.lhsmatrix = self.matrix_dot - (self.deltat / 2.0) * self.matrix
+        self.rhsmatrix = self.matrix_dot + (self.deltat / 2.0) * self.matrix
 
-    def extrapolated_solution(self, solutions):
-        return solutions[-1] * 3.0 - solutions[-2] * 3.0 + solutions[-3] * 1.0
+        return
 
+    def set_T(self, T):
+        self.T = T
+        return
+
+    def run(self):
+
+        t = self.t0ramp
+        times = [t]
+        syssize = self.lhsmatrix.shape[0]
+        prev_solution = np.zeros([syssize, 1])
+        sols = [np.zeros([syssize, 1])]
+        bcvec = np.zeros([syssize, 1])
+
+        while t < self.T:
+            t += self.deltat
+
+            print(f"{self.name}: solving t = {t:.5f} s")
+
+            rhs = self.rhsmatrix.dot(prev_solution)
+            self.bc_manager.apply_bc_vector(bcvec, t)
+            rhs += (self.deltat / 2.0) * bcvec
+
+            if self.ode_system.is_linear:
+                u = self.solver.solve_linear(self.lhsmatrix, rhs)
+
+            else:
+                # initial_guess = self.solver.solve_linear(self.lhsmatrix, rhs)
+                initial_guess = prev_solution[:]
+                initial_guess[self.bc_manager.inletindex * 3] = self.bc_manager.inletbc.inlet_function(t)
+
+                def fun(sol):
+                    retVec = self.lhsmatrix.dot(sol)
+                    retVec -= (self.deltat / 2.0) * (self.ode_system.evaluate_nonlinear(sol) +
+                                                     self.ode_system.evaluate_nonlinear(prev_solution))
+                    retVec -= rhs
+                    self.bc_manager.apply_inlet0bc_vector(retVec, t)
+                    return retVec
+
+                def jac(sol):
+                    retMat = self.lhsmatrix
+                    # retMat -= (self.deltat / 2.0) * self.ode_system.evaluate_jacobian_nonlinear(sol)
+                    return retMat
+
+                u = self.solver.solve_nonlinear(fun, jac, initial_guess)
+
+            if np.isnan(np.linalg.norm(u)):
+                raise ValueError(f"The solution at time {t} features NaNs!")
+
+            sols.append(u.copy())
+            prev_solution = u
+            times.append(t)
+
+        return np.array(sols).squeeze().T, np.array(times)

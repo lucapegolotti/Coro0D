@@ -3,14 +3,21 @@ from numpy import linalg
 
 
 # we need to look for the position of the bifurcations and stenoses
-def build_slices(portions, stenoses_map, tol, maxlength, inlet_name):
+def build_slices(portions,
+                 stenoses_map, threshold_metric, min_stenoses_length, autodetect_stenoses,
+                 tol, maxlength, inlet_name):
     newportions = []
     bifurcations = find_bifurcations(portions, tol)
-    stenoses = find_stenoses(portions, stenoses_map)
+    if autodetect_stenoses:
+        stenoses = find_stenoses_automatically(portions,
+                                               threshold=threshold_metric, threshold_length=min_stenoses_length)
+    else:
+        stenoses = find_stenoses(portions, stenoses_map)
     breakpoints = np.vstack((stenoses, bifurcations)) if stenoses is not None else bifurcations
 
     for portion in portions:
         curportions = portion.break_at_points(breakpoints, tol)
+        identify_stenoses(curportions, stenoses, 1e-16)
         for (index, curportion) in enumerate(curportions):
             slicedportions, joints = curportion.limit_length(tol, maxlength)
 
@@ -119,7 +126,6 @@ def simplify_bifurcations(bifurcations, tol):
 
 
 def find_stenoses(portions, stenoses_map):
-    # TODO: given the map of the stenoses, build a matrix made by the path points who delimit those
     stenoses_points = []
 
     for portion in portions:
@@ -153,7 +159,84 @@ def find_stenoses(portions, stenoses_map):
     else:
         return_stenoses_points = None
 
-    # TODO: future developement: automatic detection of stenotic regions based on radia variation?
+    return return_stenoses_points
+
+
+def find_stenoses_automatically(portions, threshold=0.85, threshold_length=0.5):
+
+    # TODO: future development: automatic detection of stenotic regions based on radia variation?
+
+    stenoses_points = []
+    window_len = 9
+    assert window_len >= 5
+
+    for portion in portions:
+        cur_stenoses_points = []
+        ncoords = portion.coords.shape[0]
+        stenoticIndicator = np.zeros(ncoords, dtype=bool)
+        posindices = np.where(portion.radii > 0)[0]
+        M = 1.0
+
+        print(f"Considering portion {portion.pathname}")
+
+        # loop over radii from window_len/2 to posindices[-1]-window_len/2
+        for index in range(posindices[0]+int(window_len/2), posindices[-1]-int(window_len/2)):
+            # compute reference radius and area
+            r0 = np.mean(portion.radii[index-int(window_len/2):index+int(window_len/2)])
+            A0 = np.pi * r0**2
+            # evaluate current radius and area
+            r = portion.radii[index]
+            A = np.pi * r**2
+            # evaluate metric --> M = 1 - |A-A0| / A0
+            M = 1.0 - np.abs(A-A0) / A0
+            # if metric < threshold  --> act
+            if M <= threshold:
+                stenoticIndicator[index] = True
+
+                if stenoticIndicator[index-1] and stenoticIndicator[index-2]:
+                    cur_stenoses_points.pop()
+
+                cur_stenoses_points.append(portion.coords[index])
+
+            else:
+                stenoticIndicator[index] = False
+                if stenoticIndicator[index-1] and not stenoticIndicator[index-2]:
+                    cur_stenoses_points.pop()
+                    stenoticIndicator[index-1] = False
+                elif stenoticIndicator[index-1] and stenoticIndicator[index-2]:
+                    # removing stenosis that are too short
+                    count = 0
+                    idx = index-1
+                    arclength = 0.0
+                    while stenoticIndicator[idx]:
+                        arclength += np.linalg.norm(portion.coords[idx, :] - portion.coords[idx - 1, :])
+                        count += 1
+                        idx -= 1
+
+                    print(arclength)
+
+                    if arclength < threshold_length:
+                        cur_stenoses_points.pop()
+                        cur_stenoses_points.pop()
+
+        assert len(cur_stenoses_points) % 2 == 0
+        N_cur_stenoses = int(len(cur_stenoses_points) / 2)
+
+        # joining together close stenoses
+        for cnt in range(N_cur_stenoses-1):
+            dist = np.linalg.norm(cur_stenoses_points[cnt+1] - cur_stenoses_points[cnt+2])
+            if dist < threshold_length:
+                cur_stenoses_points.pop(cnt+1)
+                cur_stenoses_points.pop(cnt+1)
+                N_cur_stenoses -= 1
+
+        print(f"Found {N_cur_stenoses} stenoses!\n")
+        stenoses_points.extend(cur_stenoses_points)
+
+    if stenoses_points:
+        return_stenoses_points = np.vstack([tmp_stenoses_points for tmp_stenoses_points in stenoses_points])
+    else:
+        return_stenoses_points = None
 
     return return_stenoses_points
 
@@ -162,8 +245,9 @@ def identify_stenoses(portions, stenoses, tol):
 
     if stenoses is not None:
         for portion in portions:
-            if (np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol) and \
-                    (np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :]) for i in range(stenoses.shape[0])]) < tol):
+
+            if (np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :]) for i in range(0,stenoses.shape[0],2)]) < tol) and \
+                    (np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :]) for i in range(1,stenoses.shape[0],2)]) < tol):
                 portion.isStenotic = True
 
     return

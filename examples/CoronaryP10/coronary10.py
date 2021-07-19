@@ -33,7 +33,7 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.00025
+        self.deltat = 0.005
         # initial time
         self.t0 = 0.0
         # final time
@@ -50,6 +50,12 @@ class ProblemData:
         self.stenoses = dict()
         self.stenoses['LAD'] = [19, 20, 21]
         self.stenoses['LCX'] = [12, 13, 14]
+        # threshold of the metric to automatically detect stenoses
+        self.threshold_metric = 0.80
+        # minimal stenosis length
+        self.min_stenoses_length = 0.75
+        # use automatic stenoses detection
+        self.autodetect_stenoses = False
 
         return
 
@@ -63,7 +69,7 @@ class SolverData:
         # maximal number of Newton's iterations
         self.max_iter = 100
         # treatment of the non-linear term
-        self.strategy = "implicit"
+        self.strategy = "semi-implicit"
 
         return
 
@@ -74,16 +80,19 @@ def main():
     coronary = "left"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths, pd.stenoses, pd.tol, pd.maxlength, pd.inlet_name)
-    plot_vessel_portions(chunks, bifurcations, connectivity)
+    chunks, bifurcations, connectivity = build_slices(paths,
+                                                      pd.stenoses, pd.threshold_metric,
+                                                      pd.min_stenoses_length, pd.autodetect_stenoses,
+                                                      pd.tol, pd.maxlength, pd.inlet_name)
+    plot_vessel_portions(chunks, bifurcations, connectivity, color="stenosis")
 
-    coeff_resistance = 0.985
+    coeff_resistance = 0.965
     coeff_capacitance = 0.2
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='None',
+    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
@@ -95,10 +104,10 @@ def main():
                           distal_pressure_shift=10)
 
     ode_system = ODESystem(blocks, connectivity, bcmanager)
-    bdf = BDF2(ode_system, connectivity, pd, sd, bcmanager)
-    solutions, times = bdf.run()
+    tma = BDF2(ode_system, connectivity, pd, sd, bcmanager)
+    solutions, times = tma.run()
 
-    # show_inlet_flow_vs_pressure(solutions, times, bcmanager, 0, 2)
+    show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.T)
     # show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
     #                inlet_index=bcmanager.inletindex)
 

@@ -28,10 +28,14 @@ def plot_vessel_portions(portions, bifurcations=None, connectivity=None, fig=Non
     if color is None:
         itercolor = True
         color = iter(cm.jet(np.linspace(0, 1, n)))
+    elif color == "stenosis":
+        color = lambda i: 'b' if not portions[i].isStenotic else 'r'
 
     for i in range(n):
         if itercolor:
             c = next(color)
+        elif callable(color):
+            c = color(i)
         else:
             c = color
         lines.append(ax.plot3D(portions[i].coords[:, 0],
