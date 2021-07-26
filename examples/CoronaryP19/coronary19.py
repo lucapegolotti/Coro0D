@@ -17,9 +17,9 @@ from core.output_writer import OutputWriter
 class ProblemData:
     def __init__(self):
         # tolerance to determine if two points are the same
-        self.tol = 0.4
+        self.tol = 0.45
         # maxlength of the single vessel portion
-        self.maxlength = 5 * self.tol
+        self.maxlength = 4 * self.tol
         # density of blood
         self.density = 1.06
         # viscosity of blood
@@ -44,17 +44,19 @@ class ProblemData:
         self.starting_minima = 0
         # self length units of the geometry files
         self.units = "cm"
+        # coronary side
+        self.side = "right"
         # name of the inlet branch
         self.inlet_name = 'RCA'
         # array of positions of the stenoses
         self.stenoses = dict()
         self.stenoses['RCA'] = [42, 43, 44, 45, 46]
         # threshold of the metric to automatically detect stenoses
-        self.threshold_metric = 0.90
+        self.threshold_metric = 0.80
         # minimal stenosis length
-        self.min_stenoses_length = 0.75
+        self.min_stenoses_length = 0.80
         # use automatic stenoses detection
-        self.autodetect_stenoses = False
+        self.autodetect_stenoses = True
 
 
 class SolverData:
@@ -66,7 +68,7 @@ class SolverData:
         # maximal number of Newton's iterations
         self.max_iter = 100
         # treatment of the non-linear term
-        self.strategy = "implicit"
+        self.strategy = "semi-implicit"
 
         return
 
@@ -74,7 +76,6 @@ class SolverData:
 def main():
     pd = ProblemData()
     sd = SolverData()
-    coronary = "right"
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths,
@@ -82,24 +83,34 @@ def main():
                                                       pd.min_stenoses_length, pd.autodetect_stenoses,
                                                       pd.tol, pd.maxlength, pd.inlet_name)
     plot_vessel_portions(chunks, bifurcations, connectivity, color="stenosis")
+    show_stenoses_details(chunks, pd.tol)
 
-    coeff_resistance = 0.78
+    coeff_resistance = 0.81
     coeff_capacitance = 0.55
-    rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
+    rc = RCCalculator(fdr, pd.side, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
+    rc.assign_downstream_resistances(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='YoungTsai',
-                                    problem_data=pd, folder=fdr, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
                           outletbc_type="coronary",
                           folder=fdr,
                           problem_data=pd,
-                          coronary=coronary,
                           distal_pressure_coeff=0.75,
                           distal_pressure_shift=15)
 
+    # setting up the blocks and computing a steady solution
+    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='YoungTsai',
+                                    problem_data=pd, folder=fdr, connectivity=connectivity)
+
+    ode_system_steady = ODESystem(blocks, connectivity, bcmanager)
+    sol_steady = ode_system_steady.solve_steady()
+    print(f"Steady flow in portion 23: {sol_steady[23 * 3 + 2]}\n")
+
+    # re-setting up the blocks, using the pre-computed steady solution, and solving the unsteady problem
+    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='ItuSharma',
+                                    problem_data=pd, folder=fdr, connectivity=connectivity, sol_steady=sol_steady)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     tma = BDF2(ode_system, connectivity, pd, sd, bcmanager)
     solutions, times = tma.run()
@@ -108,16 +119,22 @@ def main():
     # show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
     #                inlet_index=bcmanager.inletindex)
 
-    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 21, 'Pin')
-    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 21, 'Pout')
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 23, 'Pin')
+    # plot_solution(solutions, times, pd.t0, pd.T, chunks, 23, 'Pout')
+    plot_solution(solutions, times, pd.t0, pd.T, chunks, 23, 'Q')
     # show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
-    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 21, 'Pout')
+    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 23, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]
     Qin = solutions[bcmanager.inletindex * 3 + 2, positive_times]
-    print("Flow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    CO = np.loadtxt(os.path.join(fdr, os.path.normpath("Data/cardiac_output.txt")), ndmin=1)[0]
+    CO *= (1000 / 60)  # conversion from L/min to mL/s
+    CO *= 0.04  # 4% of flow goes in coronaries
+    CO *= (0.7 if pd.side == "left" else 0.3 if pd.side == "right" else 0.0)
+    print("\nFlow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    print("Target Flow = " + str(CO) + " [mL/s]")
     print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
 
     ow = OutputWriter("Output", bcmanager, chunks, pd)
