@@ -88,7 +88,7 @@ def plot_bifurcations(bifurcations, connectivity, fig, ax):
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='red')
             elif np.where(connectivity[i, :] > 2)[0].shape[0] == 1:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='blue')
-            elif np.where(np.abs(connectivity[i, :]) == 0.5)[0].shape[0] == 1:
+            elif np.where(np.abs(connectivity[i, :]) == 0.5)[0].shape[0] >= 1:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='yellow')
             else:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='green')
@@ -121,6 +121,7 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
 
     ax2 = fig.add_subplot(1, 2, 2)
     ax2.plot(times, solutions[portion_index * 3 + variable_index, :] * scale)
+    ax2.plot(times, np.mean(solutions[portion_index * 3 + variable_index, :] * scale) * np.ones_like(times), 'r-.')
     ax2.set_title(variable_name + ", portion: " + str(portion_index))
     ax2.set_xlabel("time [s]")
     ax2.set_ylabel(variable_name + unit)

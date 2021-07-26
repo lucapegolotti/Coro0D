@@ -2,21 +2,24 @@ import os
 import csv
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.interpolate import splev, splrep
+from scipy.integrate import simps
 
 
 class DistalPressureGenerator:
-    def __init__(self, times, indexminima, folder, problem_data, coronary, coeff, shift):
+    def __init__(self, times, indexminima, folder, problem_data, coeff, shift):
         self.times = times
         self.indexminima = indexminima
         self.file = os.path.join(folder, os.path.normpath("Data/plv.dat"))
         self.problem_data = problem_data
         self.shift = shift
-        if coronary == "left":
+        if self.problem_data.side == "left":
             self.coeff = 1.5 * coeff
-        elif coronary == "right":
+        elif self.problem_data.side == "right":
             self.coeff = 0.5 * coeff
+        else:
+            raise ValueError(f"Invalid coronary side {self.problem_data.side}. "
+                             f"Admissible values: ['left', 'right']")
         self.parse_myocardial_pressure()
         self.build_myocardial_pressure()
 
@@ -49,14 +52,15 @@ class DistalPressureGenerator:
         original_period = self.times_original[-1] - self.times_original[0]
 
         for iperiod in range(nperiods):
-            # period = self.times[mm[iperiod + 1]] - self.times[mm[iperiod]]
             for index in range(mm[iperiod], mm[iperiod + 1]):
                 # we scale the current time to be in the original period
-                scaledtime = self.times_original[0] + (self.times[index] - self.times[mm[iperiod]]) / \
+                scaledtime = self.times_original[0] +\
+                             (self.times[index] - self.times[mm[iperiod]]) / \
                              (self.times[mm[iperiod + 1]] - self.times[mm[iperiod]]) * original_period
                 self.myopressure[index] = splev(scaledtime, self.myopressurespline_original, der=0)
 
         # check how the myocardial pressure we built looks like
+        # import matplotlib.pyplot as plt
         # plt.figure()
         # ax = plt.axes()
         # ax.plot(self.times, self.myopressure / 1333.22)
@@ -66,6 +70,13 @@ class DistalPressureGenerator:
         self.myopressurespline = splrep(self.times, self.myopressure)
 
         return
+
+    def compute_mean_distal_pressure(self):
+        indices = [np.where(self.myopressure != 0)[0][0], np.where(self.myopressure != 0)[0][-1]]
+        I = simps(self.myopressure[indices[0]:indices[1]], self.times[indices[0]:indices[1]])
+        coeff = (self.times[indices[1]] - self.times[indices[0]]) * \
+                np.sign(self.times[indices[1]] - self.times[indices[0]])
+        return I / coeff
 
     def evaluate_ramp(self, time):
         t0ramp = self.problem_data.t0ramp

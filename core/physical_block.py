@@ -1,3 +1,5 @@
+import os
+
 from models import *
 from connectivity import find_neighbours
 from inletbc import InletBC
@@ -11,55 +13,30 @@ class PhysicalBlock:
 
         # NON-STENOSIS MODEL
         if model_type == "Windkessel2":
-            # self.model = Windkessel2(vessel_portion.compute_R(problem_data.viscosity),
-            #                          vessel_portion.compute_C(problem_data.E,
-            #                                                   problem_data.thickness_ratio))
             self.model = Windkessel2(vessel_portion, problem_data)
         elif model_type == "Resistance":
-            # self.model = Resistance(vessel_portion.compute_R(problem_data.viscosity))
             self.model = Resistance(vessel_portion, problem_data)
 
         # STENOSIS MODELS
         elif model_type == "YoungTsai":
             assert 'r0' in other_data.keys()
-            # self.model = YoungTsai(vessel_portion.compute_R_YT(problem_data.viscosity,
-            #                                                    other_data['r0']),
-            #                        vessel_portion.compute_R2_YT(problem_data.density,
-            #                                                     other_data['r0']),
-            #                        vessel_portion.compute_L_YT(problem_data.density,
-            #                                                    other_data['r0']))
             self.model = YoungTsai(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "Garcia":
             assert 'r0' in other_data.keys()
-            # self.model = Garcia(vessel_portion.compute_R2_G(problem_data.density,
-            #                                                 other_data['r0']),
-            #                     vessel_portion.compute_L_G(problem_data.density,
-            #                                                other_data['r0']))
             self.model = Garcia(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "ItuSharma":
             assert 'r0' in other_data.keys()
             assert 'HR' in other_data.keys()
-            # self.model = ItuSharma(vessel_portion.compute_R_IS(problem_data.density,
-            #                                                    problem_data.viscosity,
-            #                                                    other_data['HR'],
-            #                                                    other_data['r0']),
-            #                        vessel_portion.compute_R2_IS(problem_data.density,
-            #                                                     other_data['r0']),
-            #                        vessel_portion.compute_L_IS(problem_data.density))
-            self.model = ItuSharma(vessel_portion, problem_data, other_data['r0'], other_data['HR'])
+            # assert 'CO' in other_data.keys()
+            # assert 'MAP' in other_data.keys()
+            self.model = ItuSharma(vessel_portion, problem_data,
+                                   other_data['r0'], other_data['HR'],
+                                   other_data['sol_steady'])
         elif model_type == "ResistanceStenosis":
             assert 'r0' in other_data.keys()
-            # self.model = ResistanceStenosis(vessel_portion.compute_R(problem_data.viscosity),
-            #                                 vessel_portion.compute_R2(problem_data.density,
-            #                                                           other_data['r0']))
             self.model = ResistanceStenosis(vessel_portion, problem_data, other_data['r0'])
         elif model_type == "Windkessel2Stenosis":
             assert 'r0' in other_data.keys()
-            # self.model = Windkessel2Stenosis(vessel_portion.compute_R(problem_data.viscosity),
-            #                                  vessel_portion.compute_C(problem_data.E,
-            #                                                           problem_data.thickness_ratio),
-            #                                  vessel_portion.compute_R2(problem_data.density,
-            #                                                            other_data['r0']))
             self.model = Windkessel2Stenosis(vessel_portion, problem_data, other_data['r0'])
         else:
             raise NotImplementedError(model_type + " not implemented!")
@@ -68,7 +45,7 @@ class PhysicalBlock:
 
 
 def create_physical_blocks(portions, model_type, stenosis_model_type, problem_data,
-                           folder=None, connectivity=None):
+                           folder=None, connectivity=None, sol_steady=None):
     physical_blocks = []
     for (index_portion, portion) in enumerate(portions):
         if not portion.isStenotic:
@@ -95,6 +72,21 @@ def create_physical_blocks(portions, model_type, stenosis_model_type, problem_da
                 assert folder is not None
                 HR = InletBC.compute_HR(folder, problem_data)
                 other_data['HR'] = HR
+
+                if sol_steady is not None:
+                    other_data['sol_steady'] = sol_steady[index_portion*3:(index_portion+1)*3]
+                else:
+                    other_data['sol_steady'] = None
+
+                # co = open(os.path.join(folder, os.path.normpath("Data/cardiac_output.txt")), "r")
+                # CO = float(co.readline()) * (1000 / 60)  # conversion from L/min to mL/s
+                # CO *= 0.04  # 4% of flow goes in coronaries
+                # CO *= (0.7 if problem_data.side == "left" else 0.3 if problem_data.side == "right" else 0.0)
+                # other_data['CO'] = CO
+                #
+                # file = open(os.path.join(folder, os.path.normpath("Data/mean_aortic_pressure.txt")), "r")
+                # MAP = float(file.readline()) * 1333.2  # conversion from mmHg to dyn/cm^2
+                # other_data['MAP'] = MAP
 
             physical_blocks += [PhysicalBlock(portion,
                                               stenosis_model_type if portion.isStenotic else model_type,

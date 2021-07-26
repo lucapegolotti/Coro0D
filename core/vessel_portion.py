@@ -77,6 +77,10 @@ class VesselPortion:
         self.total_outlet_resistance = resistance
         return
 
+    def set_downstream_outlet_resistance(self, resistance):
+        self.downstream_outlet_resistance = resistance
+        return
+
     def set_total_outlet_capacitance(self, capacitance):
         self.total_outlet_capacitance = capacitance
         return
@@ -107,7 +111,10 @@ class VesselPortion:
         for icont in range(ncontours):
             curid = contours[icont].id_path
             self.contours[curid] = contours[icont]
-            self.radii[curid] = contours[icont].radius
+            if icont == 0:
+                self.radii[:curid+1] = contours[icont].radius
+            else:
+                self.radii[curid] = contours[icont].radius
             # interpolate between consecutive radii
             if icont != ncontours - 1:
                 curarclength = self.arclength[curid]
@@ -142,7 +149,14 @@ class VesselPortion:
                 caplength += totarclength / ndivisions
                 joints = np.vstack([joints, self.coords[iarchlg - 1, :]])
 
-        return self.break_at_indices(indicestobreak, tol), joints
+        slicedportions = self.break_at_indices(indicestobreak, tol)
+
+        # for portion in slicedportions:
+        #     if portion.arclength[-1] - portion.arclength[0] < 0.1 * length:
+        #         raise ValueError(f"A portion has a length of {portion.arclength[-1] - portion.arclength[0]}, which "
+        #                          f"is less than 10% the target length of {length}. Try to set different tolerances!")
+
+        return slicedportions, joints
 
     def split(self, begin, end):
         newvessel = VesselPortion(pathname=self.pathname)
@@ -191,7 +205,10 @@ class VesselPortion:
             posindices = np.where(self.radii > 0)
             posradii = self.radii[posindices]
             posarclength = self.arclength[posindices]
-            posarclength = np.subtract(posarclength, posarclength[0])
+
+            if len(posarclength) == 0:
+                breakpoint()
+                posarclength = np.subtract(posarclength, posarclength[0])
             # we compute the mean radius using the integral over the arclength
             integrated_radius = simps(posradii, posarclength)
             self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])

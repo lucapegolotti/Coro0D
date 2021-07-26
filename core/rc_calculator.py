@@ -1,6 +1,8 @@
 import numpy as np
 import os
 
+from connectivity import find_downstream_outlets_portions
+
 
 class RCCalculator:
     def __init__(self, folder, coronary, coeff_resistance=1, coeff_capacitance=1):
@@ -38,6 +40,8 @@ class RCCalculator:
         else:
             raise ValueError("Coronary type must be marked as 'left' or 'right'")
 
+        return
+
     def assign_resistances_to_outlets(self, portions, connectivity):
         maxoutletflag = int(np.max(connectivity))
 
@@ -70,5 +74,25 @@ class RCCalculator:
             curarea = portions[portionindex].compute_area_outlet()
             curresistance = curarea / suma * self.total_capacitance
             portions[portionindex].set_total_outlet_capacitance(curresistance)
+
+        return
+
+    def assign_downstream_resistances(self, portions, connectivity):
+
+        outlet_portion_indices = np.where(connectivity > 2)[1]
+        if any([portions[idx].total_outlet_resistance is None for idx in outlet_portion_indices]):
+            self.assign_resistances_to_outlets(portions, connectivity)
+
+        for portionindex in range(len(portions)):
+            outlet_portions = []
+            find_downstream_outlets_portions(portions, portionindex, connectivity, outlet_portions)
+
+            R = 0.0
+            for outlet_portion in outlet_portions:
+                R += 1.0 / outlet_portion.total_outlet_resistance
+
+            R = 1.0 / R
+
+            portions[portionindex].set_downstream_outlet_resistance(R)
 
         return

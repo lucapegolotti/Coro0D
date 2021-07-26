@@ -4,6 +4,7 @@ import numpy as np
 import os
 from scipy.interpolate import splev, splrep
 from scipy.signal import savgol_filter
+from scipy.integrate import simps
 
 
 class InletBC:
@@ -12,6 +13,7 @@ class InletBC:
         self.index = index
         self.bc_type = bc_type
         self.file = os.path.join(folder, os.path.normpath("Data/measures.csv"))
+        # self.MAP_file = os.path.join(folder, os.path.normpath("Data/mean_aortic_pressure.txt"))
         self.problem_data = problem_data
         self.parse_inlet_function()
 
@@ -89,6 +91,12 @@ class InletBC:
             self.indices_minpressures = np.subtract(minima,
                                                     minima[self.problem_data.starting_minima])
 
+            # file = open(self.MAP_file, "r")
+            # self.MAP = float(file.readline()) * 1333.2
+            indices = [0, int((self.problem_data.T - self.problem_data.t0) / samsize)]
+            self.MAP = simps(self.pressure_values[indices[0]:indices[1]], self.times[indices[0]:indices[1]]) / \
+                       (self.times[indices[1]] - self.times[indices[0]])
+
         else:
             raise NotImplementedError("Inlet flowrate case not implemented")
 
@@ -107,8 +115,11 @@ class InletBC:
 
         return
 
-    def apply_bc_vector(self, vector, time, row):
-        vector[row] = self.inlet_function(time)
+    def apply_bc_vector(self, vector, time, row, steady=False):
+        if not steady:
+            vector[row] = self.inlet_function(time)
+        else:
+            vector[row] = self.MAP
         return
 
     def apply_0bc_vector(self, vector, time, row):

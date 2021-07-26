@@ -8,12 +8,15 @@ class OutletBC:
 
         return
 
-    # the variables are ordered as follows: p0, pd, Q, K1,K2, where K1 and K2
+    # the variables are ordered as follows: [p0, pd, Q, K1, K2], where K1 and K2
     # are the pressure drops across the two capacitors
     def apply_bc_matrix_dot(self, matrix_dot, row, col):
         # here we only need to add the eqs for K1 and K2
-        matrix_dot[row + 0, col + 3] = 1
-        matrix_dot[row + 1, col + 4] = 1
+        if self.bc_type == "coronary" or self.bc_type == "resistance":
+            matrix_dot[row + 0, col + 3] = 1.0
+            matrix_dot[row + 1, col + 4] = 1.0
+        else:
+            raise NotImplementedError(self.bc_type + " bc not implemented")
 
         return 6
 
@@ -27,15 +30,16 @@ class OutletBC:
             Cim = self.portion.compute_Cim()
 
             # Ca \dot{K1} = Q - (K1 - K2 - Pd) / Ramicro
-            matrix[row + 0, col + 1] = 1 / (Ramicro * Ca)
+            matrix[row + 0, col + 1] = 1 / (Ca * Ramicro)
             matrix[row + 0, col + 2] = 1 / Ca
-            matrix[row + 0, col + 3] = -1 / (Ramicro * Ca)
-            matrix[row + 0, col + 4] = 1 / (Ramicro * Ca)
+            matrix[row + 0, col + 3] = -1 / (Ca * Ramicro)
+            matrix[row + 0, col + 4] = 1 / (Ca * Ramicro)
 
             # Cim \dot{K2} = (K1 - K2 - Pd) / (Ramicro) - (K2 + Pd) / (Rvmicro + Rv)
             matrix[row + 1, col + 1] = -1 / Cim * (1 / Ramicro + 1 / (Rvmicro + Rv))
-            matrix[row + 1, col + 3] = 1 / (Ramicro * Cim)
+            matrix[row + 1, col + 3] = 1 / (Cim * Ramicro)
             matrix[row + 1, col + 4] = -1 / Cim * (1 / Ramicro + 1 / (Rvmicro + Rv))
+
         elif self.bc_type == "resistance":
             Ra = self.portion.compute_Ra() + self.portion.compute_Rv() + \
                  self.portion.compute_Ramicro() + self.portion.compute_Rvmicro()
@@ -61,6 +65,10 @@ class OutletBC:
 
         return 6
 
-    def apply_bc_vector(self, vector, time, row):
-        vector[row + 3] = self.distal_pressure_generator.distal_pressure(time)
+    def apply_bc_vector(self, vector, time, row, steady=False):
+        if not steady:
+            vector[row + 3] = self.distal_pressure_generator.distal_pressure(time)
+        else:
+            vector[row + 3] = self.distal_pressure_generator.compute_mean_distal_pressure()
+
         return 6

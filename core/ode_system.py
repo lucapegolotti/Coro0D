@@ -20,6 +20,18 @@ class ODESystem:
 
         return
 
+    def solve_steady(self):
+
+        print("\nSolving the steady problem...")
+
+        syssize = self.smatrix.shape[0]
+        rhs = np.zeros((syssize, 1))
+        self.bc_manager.apply_bc_vector(rhs, 0.0, steady=True)
+
+        sol = np.linalg.solve(-self.smatrix, rhs)
+
+        return sol
+
     def assemble_system_matrix_dot(self):
         nblocks = len(self.blocks)
         smatrix_dot = np.zeros([self.nvariables, self.nvariables])
@@ -62,9 +74,10 @@ class ODESystem:
             if not isboundary:
                 constraintrow += 1
 
-            # equality of pressure: we look for all blocks with +-1 and we
+            # equality of pressure: we look for all blocks with +-1/0.5 and we
             # add one constraint for every couple
-            indices = np.hstack([np.where(np.abs(connectivity) == 0.5)[0], np.where(np.abs(connectivity) == 1)[0]])
+            indices = np.hstack([np.where(np.abs(connectivity) == 0.5)[0],
+                                 np.where(np.abs(connectivity) == 1)[0]])
             nindices = indices.shape[0]
             for i in range(1, nindices):
                 if connectivity[indices[0]] in {0.5, 1}:
@@ -84,6 +97,14 @@ class ODESystem:
         self.rowbcs = constraintrow
 
         return
+
+    def evaluate_constant_term(self):
+        nblocks = len(self.blocks)
+        Kvec = np.zeros([self.nvariables, 1])
+        for i in range(nblocks):
+            Kvec[i] = self.blocks[i].model.get_constant()
+
+        return Kvec
 
     def evaluate_nonlinear(self, sol):
         nblocks = len(self.blocks)

@@ -57,6 +57,7 @@ class BDF:
             print(f"{self.name}: solving t = {t:.5f} s")
 
             rhs = self.matrix_dot.dot(self.prev_solutions_contribution(prev_solutions))
+            rhs += self.beta() * self.deltat * self.ode_system.evaluate_constant_term()
             self.bc_manager.apply_bc_vector(bcvec, t)
             rhs += self.beta() * self.deltat * bcvec
 
@@ -155,11 +156,11 @@ class BDF2(BDF):
     def extrapolated_solution(self, solutions):
         return solutions[-1] * 2.0 - solutions[-2] * 1.0
 
-    def run(self, times=None, old_solutions=None):
-        solutions, times = self.CN.run()
-        solutions, times = super().run(times, solutions)
-
-        return solutions, times
+    # def run(self, times=None, old_solutions=None):
+    #     solutions, times = self.CN.run()
+    #     solutions, times = super().run(times, solutions)
+    #
+    #     return solutions, times
 
 
 class CN:
@@ -211,8 +212,9 @@ class CN:
             print(f"{self.name}: solving t = {t:.5f} s")
 
             rhs = self.rhsmatrix.dot(prev_solution)
+            rhs += self.deltat * self.ode_system.evaluate_constant_term()
             self.bc_manager.apply_bc_vector(bcvec, t)
-            rhs += (self.deltat / 2.0) * bcvec
+            rhs += self.deltat * bcvec
 
             if self.ode_system.is_linear:
                 u = self.solver.solve_linear(self.lhsmatrix, rhs)

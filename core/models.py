@@ -5,7 +5,7 @@ from scipy.integrate import simps
 
 # The constitutive equation is written in this form:
 #
-# [a, b, c]\dot{[P_in, P_out, Q]^T} = [d, e, f][P_in, P_out, Q]^T
+# [a, b, c]\dot{[P_in, P_out, Q]^T} = [d, e, f][P_in, P_out, Q]^T + K
 
 class Model(ABC):
 
@@ -35,6 +35,10 @@ class Model(ABC):
     # this is the method that computes [d, e, f]
     def get_vector(self):
         return np.array([-1.0, 1.0, self.R])
+
+    # this is the method to compute the constant K
+    def get_constant(self):
+        return 0.0
 
 
 class Resistance(Model):
@@ -208,9 +212,10 @@ class Garcia(ModelStenosis):
 
 
 class ItuSharma(ModelStenosis):
-    # CAVEAT: here I do not take into account the term with the average flow rate over the heartbeat!!
-    def __init__(self, portion, problem_data, r0, HR):
+    # CAVEAT: the flow rate from a steady simulation (if provided) is used to compute the continuous term
+    def __init__(self, portion, problem_data, r0, HR, sol_steady=None):
         self.HR = HR
+        self.sol_steady = sol_steady
         ModelStenosis.__init__(self, portion, problem_data, r0)
         return
 
@@ -260,6 +265,33 @@ class ItuSharma(ModelStenosis):
 
         return
 
+    def get_constant(self):
+        if self.sol_steady is None:
+            return 0.0
+
+        omega = self.HR * 2 * np.pi / 60.0
+        alpha = self.r0 * np.sqrt(self.problem_data.density * omega / self.problem_data.viscosity)
+        Kc = 0.0018 * alpha**2
+
+        posindices = np.where(self.vessel_portion.radii > 0)
+        posradii = self.vessel_portion.radii[posindices]
+        posarclength = self.vessel_portion.arclength[posindices]
+        posarclength = np.subtract(posarclength, posarclength[0])
+        # we compute the mean radius using the integral over the arclength
+        integral = simps(posradii ** (-4), posarclength)
+        Rvc = (8 * self.problem_data.viscosity / np.pi) * integral
+
+        # Rtot = self.MAP / self.CO
+        # Rpart = self.vessel_portion.downstream_outlet_resistance
+        #
+        # Rcoeff = Rtot / Rpart
+        #
+        # K = Kc * Rvc * Rcoeff * self.CO
+
+        K = Kc * Rvc * self.sol_steady[2]  # the steady flow is used as mean flow!
+
+        return K
+
     def evaluate_nonlinear(self, sol, index):
         vec = self.get_vector_nonlinear()
         local_sol = sol[3 * index:3 * (index + 1), 0]
@@ -286,7 +318,7 @@ class ResistanceStenosis(ModelStenosis, Resistance):
 
     def compute_R2(self):
         self.vessel_portion.compute_mean_radius()
-        Kt = 1.5
+        Kt = 1.52
         self.R2 = float((Kt * self.problem_data.density) /
                         (2 * np.pi ** 2 * self.r0 ** 4) *
                         ((self.r0 / self.vessel_portion.mean_radius) ** 2 - 1) ** 2)

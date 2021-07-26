@@ -6,14 +6,13 @@ import numpy as np
 
 class BCManager:
     def __init__(self, portions, connectivity, inletbc_type, outletbc_type, folder,
-                 problem_data, coronary, distal_pressure_coeff=1, distal_pressure_shift=0.0):
+                 problem_data, distal_pressure_coeff=1, distal_pressure_shift=0.0):
         self.portions = portions
         self.connectivity = connectivity
         self.inletbc_type = inletbc_type
         self.outletbc_type = outletbc_type
         self.folder = folder
         self.problem_data = problem_data
-        self.coronary = coronary
         self.distal_pressure_coeff = distal_pressure_coeff
         self.distal_pressure_shift = distal_pressure_shift
         self.create_bcs()
@@ -37,7 +36,6 @@ class BCManager:
                                                                  self.inletbc.indices_minpressures,
                                                                  self.folder,
                                                                  self.problem_data,
-                                                                 self.coronary,
                                                                  self.distal_pressure_coeff,
                                                                  self.distal_pressure_shift)
 
@@ -82,16 +80,16 @@ class BCManager:
 
         return
 
-    def apply_inletbc_vector(self, vector, time):
-        self.inletbc.apply_bc_vector(vector, time, self.starting_row)
+    def apply_inletbc_vector(self, vector, time, steady=False):
+        self.inletbc.apply_bc_vector(vector, time, self.starting_row, steady=steady)
         return
 
-    def apply_bc_vector(self, vector, time):
-        self.apply_inletbc_vector(vector, time)
+    def apply_bc_vector(self, vector, time, steady=False):
+        self.apply_inletbc_vector(vector, time, steady=steady)
 
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):
-            currow += self.outletbcs[ibc].apply_bc_vector(vector, time, currow)
+            currow += self.outletbcs[ibc].apply_bc_vector(vector, time, currow, steady=steady)
 
         return
 
@@ -99,11 +97,11 @@ class BCManager:
         self.inletbc.apply_0bc_vector(vector, time, self.starting_row)
         return
 
-    def apply_0bc_vector(self, vector, time):
+    def apply_0bc_vector(self, vector, time, steady=False):
         self.apply_inlet0bc_vector(vector, time)
 
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):
-            currow += self.outletbcs[ibc].apply_bc_vector(vector, time, currow)
+            currow += self.outletbcs[ibc].apply_bc_vector(vector, time, currow, steady=steady)
 
         return
