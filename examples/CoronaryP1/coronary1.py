@@ -47,6 +47,8 @@ class ProblemData:
         self.units = "mm"
         # coronary side
         self.side = "left"
+        # run an healthy simulation (i.e. no stenotic branches)
+        self.isHealthy = False
         # name of the inlet branch
         self.inlet_name = 'LAD'
         # array of positions of the stenoses
@@ -78,12 +80,11 @@ def main():
     sd = SolverData()
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths,
-                                                      pd.stenoses, pd.threshold_metric,
-                                                      pd.min_stenoses_length, pd.autodetect_stenoses,
-                                                      pd.tol, pd.maxlength, pd.inlet_name)
+    chunks, bifurcations, connectivity = build_slices(paths, pd)
     plot_vessel_portions(chunks, bifurcations, connectivity, color="stenosis")
     show_stenoses_details(chunks, pd.tol)
+
+    stenotic_portions = []  # TO BE SET MANUALLY
 
     coeff_resistance = 1.01
     coeff_capacitance = 0.25
@@ -108,6 +109,10 @@ def main():
                    inlet_index=bcmanager.inletindex)
 
     show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
+
+    for stenotic_portion in stenotic_portions:
+        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q')
+        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]

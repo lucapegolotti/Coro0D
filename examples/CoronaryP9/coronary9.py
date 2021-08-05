@@ -33,7 +33,7 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.005
+        self.deltat = 0.00025
         # initial time
         self.t0 = 15
         # final time
@@ -46,6 +46,8 @@ class ProblemData:
         self.units = "cm"
         # coronary side
         self.side = "left"
+        # run an healthy simulation (i.e. no stenotic branches)
+        self.isHealthy = False
         # name of the inlet branch
         self.inlet_name = 'LAD'
         # array of positions of the stenoses
@@ -78,14 +80,13 @@ def main():
     sd = SolverData()
     fdr = os.getcwd()
     paths = parse_vessels(fdr, pd)
-    chunks, bifurcations, connectivity = build_slices(paths,
-                                                      pd.stenoses, pd.threshold_metric,
-                                                      pd.min_stenoses_length, pd.autodetect_stenoses,
-                                                      pd.tol, pd.maxlength, pd.inlet_name)
+    chunks, bifurcations, connectivity = build_slices(paths, pd)
     plot_vessel_portions(chunks, bifurcations, connectivity, color="stenosis")
     show_stenoses_details(chunks, pd.tol)
 
-    coeff_resistance = 1.03
+    stenotic_portions = [11] if not pd.isHealthy else [5]  # TO BE SET MANUALLY!!
+
+    coeff_resistance = 1.026
     coeff_capacitance = 0.3
     rc = RCCalculator(fdr, pd.side, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
@@ -106,8 +107,8 @@ def main():
 
     ode_system_steady = ODESystem(blocks, connectivity, bcmanager)
     sol_steady = ode_system_steady.solve_steady()
-    print(f"Steady flow in portion 11: {sol_steady[11 * 3 + 2]}")
-    print(f"Steady flow in portion 17: {sol_steady[17 * 3 + 2]}\n")
+    for stenotic_portion in stenotic_portions:
+        print(f"Steady flow in portion {stenotic_portion}: {sol_steady[stenotic_portion * 3 + 2]}")
 
     # re-setting up the blocks, using the pre-computed steady solution, and solving the unsteady problem
     blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='ItuSharma',
@@ -117,16 +118,15 @@ def main():
     tma = BDF2(ode_system, connectivity, pd, sd, bcmanager)
     solutions, times = tma.run()
 
-    # show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.t0+2)
+    show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.t0+2)
     # show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
     #                inlet_index=bcmanager.inletindex)
-    #
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, 11, 'Q')
-    plot_solution(solutions, times, pd.t0, pd.T, chunks, 17, 'Q')
+
     # show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
-    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 11, 'Pout')
-    plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, 17, 'Pout')
+    for stenotic_portion in stenotic_portions:
+        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q')
+        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'Pout')
 
     positive_times = np.where(times > pd.t0)[0]
     Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]

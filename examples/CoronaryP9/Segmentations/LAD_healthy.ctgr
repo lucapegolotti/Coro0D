@@ -656,171 +656,7 @@
                 <point id="59" x="17.919267830586836" y="24.739619731808798" z="-18.1163768267605" />
             </contour_points>
         </contour>
-        <contour id="10" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
-            <path_point id="22">
-                <pos x="18.2760246277" y="24.783924866" z="-18.160299683" />
-                <tangent x="0.872305538435686" y="-0.218433574453052" z="-0.437458365065856" />
-                <rotation x="0" y="0.894668885627601" z="-0.446729879334108" />
-            </path_point>
-            <control_points>
-                <point id="0" x="18.280594358508932" y="24.786145302103964" z="-18.1522962157484" />
-                <point id="1" x="18.29804873858259" y="24.803599682177623" z="-18.1262070363195" />
-                <point id="2" x="18.319183196173981" y="24.784382731857477" z="-18.0744687835686" />
-                <point id="3" x="18.296842290088534" y="24.731274159363238" z="-18.0924988439656" />
-                <point id="4" x="18.273485888377763" y="24.705227577214828" z="-18.1260665425798" />
-                <point id="5" x="18.255206965375692" y="24.707382698630681" z="-18.1635913860518" />
-                <point id="6" x="18.246067503700033" y="24.74469295568997" z="-18.2004456719151" />
-                <point id="7" x="18.248098495183513" y="24.787189498543739" z="-18.2176153667388" />
-                <point id="8" x="18.261299939826131" y="24.829298066266347" z="-18.2123171067797" />
-                <point id="9" x="18.282625350169837" y="24.855584106349852" z="-18.1829188352567" />
-                <point id="10" x="18.301919768913649" y="24.867244908411521" z="-18.150267687568" />
-                <point id="11" x="18.321214187541045" y="24.849176318646641" z="-18.1027719331905" />
-            </control_points>
-            <contour_points>
-                <point id="0" x="18.319183196173981" y="24.784382731857477" z="-18.0744687835686" />
-                <point id="1" x="18.315769653443745" y="24.771512799938645" z="-18.0748492243674" />
-                <point id="2" x="18.311606762312557" y="24.759772671000249" z="-18.0772880270999" />
-                <point id="3" x="18.306916551937942" y="24.749156650771845" z="-18.0813396154727" />
-                <point id="4" x="18.301921051477425" y="24.739659044982989" z="-18.0865584131924" />
-                <point id="5" x="18.296842290088534" y="24.731274159363238" z="-18.0924988439656" />
-                <point id="6" x="18.291866419317962" y="24.723991390385184" z="-18.0987844212525" />
-                <point id="7" x="18.287036080269072" y="24.71778049749355" z="-18.1053150175284" />
-                <point id="8" x="18.282358036434388" y="24.712606330876106" z="-18.1120595950223" />
-                <point id="9" x="18.277839051306444" y="24.708433740720611" z="-18.1189871159631" />
-                <point id="10" x="18.273485888377763" y="24.705227577214828" z="-18.1260665425798" />
-                <point id="11" x="18.269311413832188" y="24.702992048807538" z="-18.1332743206792" />
-                <point id="12" x="18.265352904618798" y="24.701888796991604" z="-18.1406168303798" />
-                <point id="13" x="18.261653740377991" y="24.702118821520898" z="-18.1481079353779" />
-                <point id="14" x="18.258257300750156" y="24.703883122149296" z="-18.1557614993698" />
-                <point id="15" x="18.255206965375692" y="24.707382698630681" z="-18.1635913860518" />
-                <point id="16" x="18.25254133280685" y="24.712712536682702" z="-18.1715680573822" />
-                <point id="17" x="18.250279877243315" y="24.719543565878112" z="-18.1794883683663" />
-                <point id="18" x="18.248437291796634" y="24.727440701753441" z="-18.1871057722716" />
-                <point id="19" x="18.247028269578358" y="24.735968859845219" z="-18.1941737223654" />
-                <point id="20" x="18.246067503700033" y="24.74469295568997" z="-18.2004456719151" />
-                <point id="21" x="18.245566461008174" y="24.753267224452681" z="-18.205726106915" />
-                <point id="22" x="18.245523703289205" y="24.761703179812155" z="-18.2100236442678" />
-                <point id="23" x="18.245934566064509" y="24.770101655075649" z="-18.2133979336029" />
-                <point id="24" x="18.246794384855484" y="24.778563483550425" z="-18.2159086245501" />
-                <point id="25" x="18.248098495183513" y="24.787189498543739" z="-18.2176153667388" />
-                <point id="26" x="18.249843670783573" y="24.796024425596642" z="-18.2185469259861" />
-                <point id="27" x="18.252032438244974" y="24.804888559185351" z="-18.2186085328593" />
-                <point id="28" x="18.254668762370606" y="24.813546086019866" z="-18.2176745341128" />
-                <point id="29" x="18.257756607963362" y="24.821761192810197" z="-18.2156192765014" />
-                <point id="30" x="18.261299939826131" y="24.829298066266347" z="-18.2123171067797" />
-                <point id="31" x="18.265275824272837" y="24.835977122202046" z="-18.2077240846809" />
-                <point id="32" x="18.269553733661503" y="24.841843692845909" z="-18.2021231218528" />
-                <point id="33" x="18.273976241861188" y="24.846999339530271" z="-18.1958788429218" />
-                <point id="34" x="18.278385922740949" y="24.851545623587473" z="-18.1893558725143" />
-                <point id="35" x="18.282625350169837" y="24.855584106349852" z="-18.1829188352567" />
-                <point id="36" x="18.286586386000476" y="24.859180595238065" z="-18.1768162212109" />
-                <point id="37" x="18.290358044019737" y="24.862257882026068" z="-18.1708319821802" />
-                <point id="38" x="18.294078625998058" y="24.864703004576128" z="-18.1646339354036" />
-                <point id="39" x="18.297886433705884" y="24.866403000750523" z="-18.1578898981199" />
-                <point id="40" x="18.301919768913649" y="24.867244908411521" z="-18.150267687568" />
-                <point id="41" x="18.306244167536786" y="24.867072140417008" z="-18.141558435339" />
-                <point id="42" x="18.310634102070701" y="24.865553609607321" z="-18.1320465304338" />
-                <point id="43" x="18.314791279155784" y="24.862314603818398" z="-18.1221396762052" />
-                <point id="44" x="18.318417405432434" y="24.856980410886191" z="-18.1122455760065" />
-                <point id="45" x="18.321214187541045" y="24.849176318646641" z="-18.1027719331905" />
-                <point id="46" x="18.322938256347587" y="24.838722737253782" z="-18.0941143598013" />
-                <point id="47" x="18.32356593962032" y="24.82622056613398" z="-18.0866201026463" />
-                <point id="48" x="18.323128489353074" y="24.812465827031691" z="-18.0806243172237" />
-                <point id="49" x="18.321657157539683" y="24.798254541691371" z="-18.0764621590317" />
-            </contour_points>
-        </contour>
-        <contour id="11" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
-            <path_point id="23">
-                <pos x="18.485991926951712" y="24.757509606040752" z="-18.2399351936503" />
-                <tangent x="0.874765375333126" y="-0.199259323065273" z="-0.441680042892889" />
-                <rotation x="0" y="0.911532389454799" z="-0.411228285718315" />
-            </path_point>
-            <control_points>
-                <point id="0" x="18.476122175449696" y="24.725255123792227" z="-18.2449313681752" />
-                <point id="1" x="18.496619359457146" y="24.745752307799677" z="-18.2135829473572" />
-                <point id="2" x="18.516684917965904" y="24.71372055093525" z="-18.1593914969708" />
-                <point id="3" x="18.509640624630265" y="24.672521769476589" z="-18.1547566093504" />
-                <point id="4" x="18.48649508995004" y="24.645872939086985" z="-18.1885749460198" />
-                <point id="5" x="18.461336900130846" y="24.621516130049713" z="-18.2274134498439" />
-                <point id="6" x="18.434166055405512" y="24.624061770417029" z="-18.282374857401" />
-                <point id="7" x="18.420077469432727" y="24.668502567627002" z="-18.3303268775344" />
-                <point id="8" x="18.426115435315296" y="24.718419799144613" z="-18.3408880753559" />
-                <point id="9" x="18.441210349206813" y="24.744771165656857" z="-18.3228801242658" />
-                <point id="10" x="18.458317918470129" y="24.785868499486241" z="-18.3075385158299" />
-                <point id="11" x="18.482469780603424" y="24.813264429045375" z="-18.2720641521737" />
-                <point id="12" x="18.503602660028264" y="24.82516729211784" z="-18.2355794729083" />
-                <point id="13" x="18.521716556511819" y="24.819683978828834" z="-18.1972304212395" />
-                <point id="14" x="18.527754521812312" y="24.774945717741502" z="-18.1650887866854" />
-            </control_points>
-            <contour_points>
-                <point id="0" x="18.516684917965904" y="24.71372055093525" z="-18.1593914969708" />
-                <point id="1" x="18.515271072507289" y="24.703483341295602" z="-18.1575732658309" />
-                <point id="2" x="18.514275096207435" y="24.694363947834244" z="-18.1554317188138" />
-                <point id="3" x="18.513281613303324" y="24.686243281046838" z="-18.1537357986046" />
-                <point id="4" x="18.511875248031938" y="24.679002251429065" z="-18.1532544478885" />
-                <point id="5" x="18.509640624630265" y="24.672521769476589" z="-18.1547566093504" />
-                <point id="6" x="18.50628228418319" y="24.666670853661444" z="-18.1587683604973" />
-                <point id="7" x="18.501984435167216" y="24.661270954361086" z="-18.1648443181226" />
-                <point id="8" x="18.497051202906761" y="24.656131629929344" z="-18.1722962338414" />
-                <point id="9" x="18.491786712726231" y="24.651062438720036" z="-18.1804358592687" />
-                <point id="10" x="18.48649508995004" y="24.645872939086985" z="-18.1885749460198" />
-                <point id="11" x="18.48140896011574" y="24.640453175568812" z="-18.1962031644592" />
-                <point id="12" x="18.476474949613429" y="24.635015137443357" z="-18.2035218599493" />
-                <point id="13" x="18.471568185046351" y="24.629851300173261" z="-18.2109102966021" />
-                <point id="14" x="18.466563793017741" y="24.625254139221166" z="-18.2187477385297" />
-                <point id="15" x="18.461336900130846" y="24.621516130049713" z="-18.2274134498439" />
-                <point id="16" x="18.45581600660066" y="24.618914642268123" z="-18.2371741711868" />
-                <point id="17" x="18.450143107089229" y="24.617666622071937" z="-18.2478465493212" />
-                <point id="18" x="18.44451356987036" y="24.617973909803275" z="-18.2591347075398" />
-                <point id="19" x="18.439122763217853" y="24.620038345804268" z="-18.2707427691354" />
-                <point id="20" x="18.434166055405512" y="24.624061770417029" z="-18.282374857401" />
-                <point id="21" x="18.429817579354371" y="24.630149019447646" z="-18.2937333905374" />
-                <point id="22" x="18.426166526574363" y="24.638016910558058" z="-18.3045139663777" />
-                <point id="23" x="18.423280853222646" y="24.647285256874156" z="-18.3144104776631" />
-                <point id="24" x="18.421228515456381" y="24.657573871521837" z="-18.323116817135" />
-                <point id="25" x="18.420077469432727" y="24.668502567627002" z="-18.3303268775344" />
-                <point id="26" x="18.419862834143732" y="24.679682990873328" z="-18.3357959022904" />
-                <point id="27" x="18.420488379921" y="24.690694117175642" z="-18.3395245375829" />
-                <point id="28" x="18.421825039931022" y="24.701106755006556" z="-18.3415747802795" />
-                <point id="29" x="18.423743747340293" y="24.710491712838675" z="-18.342008627248" />
-                <point id="30" x="18.426115435315296" y="24.718419799144613" z="-18.3408880753559" />
-                <point id="31" x="18.428818709860156" y="24.724650508087649" z="-18.3383450486783" />
-                <point id="32" x="18.431762868329489" y="24.729698076593753" z="-18.3347911801191" />
-                <point id="33" x="18.434864880915544" y="24.73426542727956" z="-18.3307080297898" />
-                <point id="34" x="18.43804171781057" y="24.739055482761717" z="-18.3265771578016" />
-                <point id="35" x="18.441210349206813" y="24.744771165656857" z="-18.3228801242658" />
-                <point id="36" x="18.4443220936008" y="24.751907656314238" z="-18.3199367403223" />
-                <point id="37" x="18.44746566270619" y="24.760129166013552" z="-18.3174198212247" />
-                <point id="38" x="18.450764116540917" y="24.768892163767116" z="-18.3148404332553" />
-                <point id="39" x="18.454340515122915" y="24.777653118587242" z="-18.3117096426963" />
-                <point id="40" x="18.458317918470129" y="24.785868499486241" z="-18.3075385158299" />
-                <point id="41" x="18.462770927986821" y="24.793102985224024" z="-18.3019829109016" />
-                <point id="42" x="18.467580310622576" y="24.79935409355091" z="-18.29527785401" />
-                <point id="43" x="18.472578374713319" y="24.804727551964817" z="-18.2878031632169" />
-                <point id="44" x="18.477597428594962" y="24.809329087963665" z="-18.2799386565842" />
-                <point id="45" x="18.482469780603424" y="24.813264429045375" z="-18.2720641521737" />
-                <point id="46" x="18.487066465920407" y="24.816627451659816" z="-18.2644774214657" />
-                <point id="47" x="18.491413427110754" y="24.819464628064658" z="-18.2571480496134" />
-                <point id="48" x="18.495575333585094" y="24.821810579469528" z="-18.2499635751887" />
-                <point id="49" x="18.499616854754056" y="24.823699927084046" z="-18.2428115367631" />
-                <point id="50" x="18.503602660028264" y="24.82516729211784" z="-18.2355794729083" />
-                <point id="51" x="18.507571476251641" y="24.82618567864386" z="-18.2281785045883" />
-                <point id="52" x="18.511458260001291" y="24.826481622188371" z="-18.2206140823361" />
-                <point id="53" x="18.515172025287608" y="24.825720041140976" z="-18.212915239077" />
-                <point id="54" x="18.518621786120985" y="24.823565853891264" z="-18.2051110077364" />
-                <point id="55" x="18.521716556511819" y="24.819683978828834" z="-18.1972304212395" />
-                <point id="56" x="18.524357938307471" y="24.81383784864552" z="-18.1893616362948" />
-                <point id="57" x="18.526417884703164" y="24.806184953242109" z="-18.1818293047432" />
-                <point id="58" x="18.527760936731077" y="24.79698129682162" z="-18.1750172022084" />
-                <point id="59" x="18.528251635423398" y="24.786482883587077" z="-18.1693091043145" />
-                <point id="60" x="18.527754521812312" y="24.774945717741502" z="-18.1650887866854" />
-                <point id="61" x="18.526221930631074" y="24.762650457923769" z="-18.1625772685259" />
-                <point id="62" x="18.523957371417215" y="24.749976380516156" z="-18.1613445433649" />
-                <point id="63" x="18.521352147409331" y="24.737327416336779" z="-18.1607978483122" />
-                <point id="64" x="18.518797561846029" y="24.725107496203769" z="-18.1603444204775" />
-            </contour_points>
-        </contour>
-        <contour id="12" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
+        <contour id="10" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
             <path_point id="24">
                 <pos x="18.6666496277" y="24.705799866" z="-18.347799683" />
                 <tangent x="0.88222137439455" y="-0.336486523241236" z="-0.329336099203256" />
@@ -869,7 +705,7 @@
                 <point id="35" x="18.733599208117354" y="24.797645129064865" z="-18.2622964457222" />
             </contour_points>
         </contour>
-        <contour id="13" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
+        <contour id="11" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
             <path_point id="26">
                 <pos x="18.9010246277" y="24.549549866" z="-18.410299683" />
                 <tangent x="0.801697990800974" y="-0.532913366678036" z="-0.270709577151534" />
@@ -926,7 +762,7 @@
                 <point id="43" x="18.987508773803711" y="24.723731994628906" z="-18.4970722198486" />
             </contour_points>
         </contour>
-        <contour id="14" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
+        <contour id="12" type="Contour" method="LevelSet" closed="true" min_control_number="2" max_control_number="2" subdivision_type="0" subdivision_number="0" subdivision_spacing="0">
             <path_point id="30">
                 <pos x="19.2135246277" y="24.237049866" z="-18.660299683" />
                 <tangent x="0.411773211745178" y="-0.885537218239729" z="0.21509685539613" />
@@ -987,7 +823,7 @@
                 <point id="47" x="18.982437133789062" y="24.135581970214844" z="-18.6356525421143" />
             </contour_points>
         </contour>
-        <contour id="15" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="13" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="32">
                 <pos x="19.2916496277" y="24.080799866" z="-18.535299683" />
                 <tangent x="0.435290097415887" y="-0.873071256020023" z="0.219702328169928" />
@@ -995,7 +831,7 @@
             </path_point>
             <control_points>
                 <point id="0" x="19.218791245412095" y="23.985051084070982" z="-18.7714418186325" />
-                <point id="1" x="19.257823089961008" y="24.024082928619894" z="-18.6936665566614" />
+                <point id="1" x="19.257823089961011" y="24.024082928619897" z="-18.6936665566614" />
                 <point id="2" x="19.034557393984869" y="23.879407929023728" z="-18.8262379196531" />
                 <point id="3" x="19.094389767036773" y="23.885668876348063" z="-18.9199018635554" />
                 <point id="4" x="19.189747612166684" y="23.918723519542255" z="-18.977476431668" />
@@ -1090,7 +926,7 @@
                 <point id="74" x="19.028571719189127" y="23.880485440598157" z="-18.8100967643951" />
             </contour_points>
         </contour>
-        <contour id="16" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="14" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="34">
                 <pos x="19.329489402557275" y="23.743369219822618" z="-18.786985790018" />
                 <tangent x="0.145363742434109" y="-0.989069057961499" z="0.0247342064498153" />
@@ -1175,7 +1011,7 @@
                 <point id="59" x="19.525350991791015" y="23.770881394314237" z="-18.8379165922813" />
             </contour_points>
         </contour>
-        <contour id="17" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="15" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="40">
                 <pos x="19.3697746277" y="23.416737366" z="-18.597799683" />
                 <tangent x="-0.00605434503088378" y="-0.999599794219287" z="0.0276332463349308" />
@@ -1248,7 +1084,7 @@
                 <point id="49" x="19.147028325299036" y="23.413986497454989" z="-18.7460915363849" />
             </contour_points>
         </contour>
-        <contour id="18" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="16" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="42">
                 <pos x="19.3697746277" y="23.260487366" z="-18.597799683" />
                 <tangent x="0.00305254381100247" y="-0.998964847776154" z="-0.0453862851955004" />
@@ -1321,7 +1157,7 @@
                 <point id="49" x="19.629215729585653" y="23.272357538809999" z="-18.8416092212419" />
             </contour_points>
         </contour>
-        <contour id="19" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="17" type="SplinePolygon" method="LevelSet" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="47">
                 <pos x="19.373590003531675" y="22.754390983446324" z="-18.6968338657242" />
                 <tangent x="0.00811166788526738" y="-0.85941744911881" z="-0.511210180839776" />
@@ -1394,7 +1230,7 @@
                 <point id="49" x="19.579960549498285" y="22.854054125041142" z="-18.8611092632242" />
             </contour_points>
         </contour>
-        <contour id="20" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="18" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="50">
                 <pos x="19.3307121277" y="22.205799866" z="-18.785299683" />
                 <tangent x="-0.0697625713952228" y="-0.954875331071078" z="-0.288697567956895" />
@@ -1448,7 +1284,7 @@
                 <point id="34" x="19.549908434534142" y="22.233867688960022" z="-18.9311026769774" />
             </contour_points>
         </contour>
-        <contour id="21" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="19" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="54">
                 <pos x="19.3307121277" y="21.541737366" z="-18.972799683" />
                 <tangent x="-0.12714470085512" y="-0.979350637534915" z="-0.15718318550156" />
@@ -1499,15 +1335,15 @@
                 <point id="31" x="19.412816016945779" y="21.545089578929545" z="-19.0600995192809" />
             </contour_points>
         </contour>
-        <contour id="22" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="20" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="53">
                 <pos x="19.246646888008918" y="20.876961770828796" z="-19.2681707794625" />
                 <tangent x="0.0469798927745943" y="-0.945766180815541" z="-0.321433073750155" />
                 <rotation x="0" y="0.321788381138358" z="-0.946811616830061" />
             </path_point>
             <control_points>
-                <point id="0" x="19.271714367441643" y="20.880819071830274" z="-19.2758564768667" />
-                <point id="1" x="19.287927555188492" y="20.897032259577124" z="-19.3211915466599" />
+                <point id="0" x="19.271714367441643" y="20.880819071830267" z="-19.2758564768667" />
+                <point id="1" x="19.287927555188499" y="20.897032259577124" z="-19.3211915466599" />
                 <point id="2" x="19.374231714311463" y="20.872964881476946" z="-19.2377630674164" />
                 <point id="3" x="19.324442513745453" y="20.854708458296955" z="-19.1913234897656" />
                 <point id="4" x="19.272578763186175" y="20.838364566909149" z="-19.150814446446" />
@@ -1584,7 +1420,7 @@
                 <point id="59" x="19.381255566202455" y="20.87769940167399" z="-19.2506670576736" />
             </contour_points>
         </contour>
-        <contour id="23" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="21" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="62">
                 <pos x="19.2916496277" y="20.252674866" z="-19.472799683" />
                 <tangent x="0.0948456874908644" y="-0.89709506087882" z="-0.431537654569346" />
@@ -1636,7 +1472,7 @@
                 <point id="32" x="19.271949035412423" y="20.204345835189521" z="-19.3766615634486" />
             </contour_points>
         </contour>
-        <contour id="24" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="22" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="64">
                 <pos x="19.4088371277" y="20.057362366" z="-19.660299683" />
                 <tangent x="0.370379308576087" y="-0.635415732214745" z="-0.677544105599553" />
@@ -1685,7 +1521,7 @@
                 <point id="29" x="19.493567356768139" y="20.125594335703788" z="-19.6779713640335" />
             </contour_points>
         </contour>
-        <contour id="25" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="23" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="66">
                 <pos x="19.4478996277" y="19.822987366" z="-19.847799683" />
                 <tangent x="0.0478908801919649" y="-0.776709352122029" z="-0.628035863562438" />
@@ -1724,7 +1560,7 @@
                 <point id="21" x="19.53601669924636" y="19.84061168828363" z="-19.8628768028952" />
             </contour_points>
         </contour>
-        <contour id="26" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="24" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="68">
                 <pos x="19.4869621277" y="19.510487366" z="-20.097799683" />
                 <tangent x="0.156350591088979" y="-0.835934055409255" z="-0.526088155800113" />
@@ -1764,7 +1600,7 @@
                 <point id="22" x="19.56342639323389" y="19.527466821099718" z="-20.1020546192587" />
             </contour_points>
         </contour>
-        <contour id="27" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="25" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="70">
                 <pos x="19.5260246277" y="19.197987366" z="-20.222799683" />
                 <tangent x="-0.118746758059866" y="-0.981714048830935" z="-0.148784185242395" />
@@ -1772,7 +1608,7 @@
             </path_point>
             <control_points>
                 <point id="0" x="19.511589587069807" y="19.205230876832836" z="-20.2590733102095" />
-                <point id="1" x="19.5186821494583" y="19.212323439221329" z="-20.3115324268573" />
+                <point id="1" x="19.518682149458304" y="19.212323439221333" z="-20.3115324268573" />
                 <point id="2" x="19.652846769284224" y="19.187150063575245" z="-20.2525110809656" />
                 <point id="3" x="19.617790242627962" y="19.180714328074828" z="-20.1820674331102" />
                 <point id="4" x="19.557987932072137" y="19.181872650282457" z="-20.141981254681" />
@@ -1861,7 +1697,7 @@
                 <point id="69" x="19.655303019919625" y="19.188814073158021" z="-20.2654509870102" />
             </contour_points>
         </contour>
-        <contour id="28" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="26" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="72">
                 <pos x="19.4869621277" y="19.002674866" z="-20.222799683" />
                 <tangent x="0.383608542445856" y="-0.920299014772999" z="0.0767737557399178" />
@@ -1916,7 +1752,7 @@
                 <point id="34" x="19.362174890168532" y="18.947169694762042" z="-20.2646356469957" />
             </contour_points>
         </contour>
-        <contour id="29" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="27" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="76">
                 <pos x="19.8385246277" y="18.924549866" z="-20.222799683" />
                 <tangent x="0.99592025322118" y="0.0897897524498702" z="0.00898051105737939" />
@@ -1972,7 +1808,7 @@
                 <point id="35" x="19.823953123420342" y="19.087234473825735" z="-20.2334176107699" />
             </contour_points>
         </contour>
-        <contour id="30" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="28" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="78">
                 <pos x="20.0728996277" y="18.963612366" z="-20.222799683" />
                 <tangent x="0.955403439958294" y="0.294750868362767" z="-0.0180608005153117" />
@@ -2022,15 +1858,15 @@
                 <point id="30" x="20.124437841735034" y="18.800420921098628" z="-20.1597367648031" />
             </contour_points>
         </contour>
-        <contour id="31" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="29" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="75">
                 <pos x="20.418920761600443" y="19.039055750867487" z="-20.1683563588112" />
                 <tangent x="0.890891199230887" y="-0.13679800523968" z="-0.433127206367132" />
                 <rotation x="0" y="0.953569392722506" z="-0.301173394015526" />
             </path_point>
             <control_points>
-                <point id="0" x="20.410321881980316" y="19.029147434683832" z="-20.1829138102825" />
-                <point id="1" x="20.433578094012404" y="19.05240364671592" z="-20.1424237395744" />
+                <point id="0" x="20.410321881980309" y="19.029147434683832" z="-20.1829138102825" />
+                <point id="1" x="20.433578094012397" y="19.05240364671592" z="-20.1424237395744" />
                 <point id="2" x="20.473162638954818" y="19.046921299464884" z="-20.0592715001549" />
                 <point id="3" x="20.45712590997573" y="18.987937807978597" z="-20.073627921869" />
                 <point id="4" x="20.429769136826508" y="18.934149879656616" z="-20.1129092852352" />
@@ -2113,15 +1949,15 @@
                 <point id="64" x="20.474436603416326" y="19.057788700778097" z="-20.0600834443004" />
             </contour_points>
         </contour>
-        <contour id="32" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="30" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="78">
                 <pos x="20.5807121277" y="18.846424866" z="-20.347799683" />
                 <tangent x="0.290301950630861" y="-0.534222367424965" z="-0.793934027235754" />
                 <rotation x="0" y="0.829663402219951" z="-0.558263951027482" />
             </path_point>
             <control_points>
-                <point id="0" x="20.585527759574646" y="18.905190969705814" z="-20.3855813861268" />
-                <point id="1" x="20.626884385335373" y="18.946547595466541" z="-20.3982873856768" />
+                <point id="0" x="20.585527759574646" y="18.905190969705806" z="-20.3855813861268" />
+                <point id="1" x="20.626884385335376" y="18.946547595466537" z="-20.3982873856768" />
                 <point id="2" x="20.70691229091608" y="18.869151899358258" z="-20.3169471648289" />
                 <point id="3" x="20.669151612994028" y="18.823125948256347" z="-20.2997844112106" />
                 <point id="4" x="20.601579872396542" y="18.794451289111748" z="-20.3051974098198" />
@@ -2204,7 +2040,7 @@
                 <point id="64" x="20.712256716134409" y="18.87720790414183" z="-20.3204137008283" />
             </contour_points>
         </contour>
-        <contour id="33" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="31" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="81">
                 <pos x="20.607017024649853" y="18.663227824895486" z="-20.6548535442825" />
                 <tangent x="-0.127330304316249" y="-0.705575695998288" z="-0.697101090817726" />
@@ -2259,7 +2095,7 @@
                 <point id="34" x="20.757774890698602" y="18.637929769395488" z="-20.6567849025209" />
             </contour_points>
         </contour>
-        <contour id="34" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="32" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="88">
                 <pos x="20.5807121277" y="18.533924866" z="-20.785299683" />
                 <tangent x="-0.148170927985488" y="-0.6583541728927" z="-0.737980459859669" />
@@ -2314,15 +2150,15 @@
                 <point id="34" x="20.747758769471027" y="18.537468633439513" z="-20.8220005327408" />
             </contour_points>
         </contour>
-        <contour id="35" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="33" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="91">
                 <pos x="20.543928009722549" y="18.256351150251433" z="-21.1272810592469" />
                 <tangent x="0.150963831889408" y="-0.660497289866275" z="-0.735495242364335" />
                 <rotation x="0" y="0.744022268227184" z="-0.668154820668142" />
             </path_point>
             <control_points>
-                <point id="0" x="20.581469332271187" y="18.290203239072767" z="-21.1499757417618" />
-                <point id="1" x="20.619022348822085" y="18.327756255623665" z="-21.1759915706598" />
+                <point id="0" x="20.58146933227119" y="18.290203239072763" z="-21.1499757417618" />
+                <point id="1" x="20.619022348822089" y="18.327756255623662" z="-21.1759915706598" />
                 <point id="2" x="20.690720447950298" y="18.270005012396723" z="-21.1094128129771" />
                 <point id="3" x="20.670190037490102" y="18.218463195720688" z="-21.0673406430287" />
                 <point id="4" x="20.635288339137333" y="18.191723680123687" z="-21.050491474336" />
@@ -2411,7 +2247,7 @@
                 <point id="69" x="20.695240218870332" y="18.280967079276945" z="-21.118329381222" />
             </contour_points>
         </contour>
-        <contour id="36" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="34" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="89">
                 <pos x="20.893887628505954" y="18.014758896366239" z="-21.5713540973983" />
                 <tangent x="0.769199590349421" y="-0.272631864105332" z="-0.577930667883903" />
@@ -2454,7 +2290,7 @@
                 <point id="24" x="20.974302248888055" y="18.081523793318922" z="-21.4958214127249" />
             </contour_points>
         </contour>
-        <contour id="37" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="35" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="91">
                 <pos x="21.119520206076572" y="17.991976996385656" z="-21.759040506081" />
                 <tangent x="0.710497570525905" y="0.0620030837786679" z="-0.700962780665794" />
@@ -2462,7 +2298,7 @@
             </path_point>
             <control_points>
                 <point id="0" x="21.105901927042385" y="17.992155690372716" z="-21.7728282204317" />
-                <point id="1" x="21.134241422796737" y="18.020495186127068" z="-21.7415964922762" />
+                <point id="1" x="21.13424142279673" y="18.020495186127061" z="-21.7415964922762" />
                 <point id="2" x="21.183094317675568" y="17.919840325477708" z="-21.7009824222187" />
                 <point id="3" x="21.148018945241347" y="17.858828937001817" z="-21.7419316165615" />
                 <point id="4" x="21.096867360873148" y="17.863379449816421" z="-21.7933764744084" />
@@ -2533,7 +2369,7 @@
                 <point id="54" x="21.189364782747852" y="17.932138872500566" z="-21.6935388058398" />
             </contour_points>
         </contour>
-        <contour id="38" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="36" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="92">
                 <pos x="21.2057121277" y="17.987049866" z="-21.847799683" />
                 <tangent x="0.647174954065752" y="-0.306111931278363" z="-0.698183403096223" />
@@ -2577,15 +2413,15 @@
                 <point id="25" x="21.305991650215013" y="18.009483406219715" z="-21.7646802047262" />
             </contour_points>
         </contour>
-        <contour id="39" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="37" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="94">
                 <pos x="21.2838371277" y="17.869862366" z="-21.972799683" />
                 <tangent x="0.204241199560196" y="-0.524224866371941" z="-0.826724755816307" />
                 <rotation x="0" y="0.8445268794732" z="-0.535513164961665" />
             </path_point>
             <control_points>
-                <point id="0" x="21.264637347250208" y="17.903450679853233" z="-21.9988412589662" />
-                <point id="1" x="21.297249049319749" y="17.936062381922774" z="-22.0114636123381" />
+                <point id="0" x="21.264637347250208" y="17.903450679853229" z="-21.9988412589662" />
+                <point id="1" x="21.297249049319745" y="17.936062381922767" z="-22.0114636123381" />
                 <point id="2" x="21.372829909145366" y="17.87328272027662" z="-21.9529829818057" />
                 <point id="3" x="21.270622207957786" y="17.823178528866265" z="-21.9464622626547" />
                 <point id="4" x="21.14931315582362" y="17.855451286130119" z="-21.9968955999939" />
@@ -2620,15 +2456,15 @@
                 <point id="24" x="21.377770005229205" y="17.897423579548697" z="-21.9670702188532" />
             </contour_points>
         </contour>
-        <contour id="40" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="38" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="96">
                 <pos x="21.2838371277" y="17.791737366" z="-22.160299683" />
                 <tangent x="-0.363950721677177" y="-0.528202039310717" z="-0.76716522200805" />
                 <rotation x="0" y="0.823652810384393" z="-0.567094390684559" />
             </path_point>
             <control_points>
-                <point id="0" x="21.255234449048167" y="17.7992692962593" z="-22.1519161113393" />
-                <point id="1" x="21.279731483277175" y="17.823766330488304" z="-22.1804042337104" />
+                <point id="0" x="21.255234449048171" y="17.7992692962593" z="-22.1519161113393" />
+                <point id="1" x="21.279731483277182" y="17.823766330488311" z="-22.1804042337104" />
                 <point id="2" x="21.348819793201983" y="17.743377799284644" z="-22.1578319828259" />
                 <point id="3" x="21.25823789590504" y="17.718175198649988" z="-22.0975067614345" />
                 <point id="4" x="21.188083854271099" y="17.77018258580938" z="-22.1000326761277" />
@@ -2663,7 +2499,7 @@
                 <point id="24" x="21.355751893209462" y="17.768259812157137" z="-22.1782521899773" />
             </contour_points>
         </contour>
-        <contour id="41" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="39" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="101">
                 <pos x="20.970586754181546" y="17.590329213485351" z="-22.5366658846512" />
                 <tangent x="-0.706342089443633" y="-0.526316685354663" z="-0.473362017273971" />
@@ -2712,7 +2548,7 @@
                 <point id="29" x="21.047998171079531" y="17.536507874712441" z="-22.5923354830125" />
             </contour_points>
         </contour>
-        <contour id="42" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="40" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="104">
                 <pos x="20.7760246277" y="17.401112366" z="-22.785299683" />
                 <tangent x="-0.610629340174782" y="0.0847931363897585" z="-0.787363913917128" />
@@ -2761,15 +2597,15 @@
                 <point id="29" x="20.870342055358925" y="17.444983891876369" z="-22.8537216456361" />
             </contour_points>
         </contour>
-        <contour id="43" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="41" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="106">
                 <pos x="20.650400444891321" y="17.365318411186074" z="-23.0342055646573" />
                 <tangent x="0.0807946213245872" y="0.0292827027313011" z="-0.996300533215639" />
                 <rotation x="0" y="0.999568351405141" z="0.0293787485984194" />
             </path_point>
             <control_points>
-                <point id="0" x="20.66339578119246" y="17.375587236611818" z="-23.0328498971727" />
-                <point id="1" x="20.694060411643431" y="17.406251867062789" z="-23.0294618828631" />
+                <point id="0" x="20.663395781192463" y="17.375587236611818" z="-23.0328498971727" />
+                <point id="1" x="20.694060411643431" y="17.406251867062785" z="-23.0294618828631" />
                 <point id="2" x="20.748727986385347" y="17.338939623201441" z="-23.0270070397528" />
                 <point id="3" x="20.703186807717429" y="17.297529143052088" z="-23.0319172979798" />
                 <point id="4" x="20.641085201554233" y="17.281069461689185" z="-23.0374371785438" />
@@ -2828,15 +2664,15 @@
                 <point id="44" x="20.751789392840045" y="17.347308736943653" z="-23.0265127958977" />
             </contour_points>
         </contour>
-        <contour id="44" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="42" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="108">
                 <pos x="20.826275488678849" y="17.416850929219201" z="-23.5254502358251" />
                 <tangent x="0.452547494769572" y="0.188560768621988" z="-0.8715765035351" />
                 <rotation x="0" y="0.97738826231828" z="0.211452558940424" />
             </path_point>
             <control_points>
-                <point id="0" x="20.839609923139669" y="17.427311981693677" z="-23.5162634243724" />
-                <point id="1" x="20.867801727796731" y="17.455503786350739" z="-23.4955262901653" />
+                <point id="0" x="20.839609923139665" y="17.427311981693677" z="-23.5162634243724" />
+                <point id="1" x="20.867801727796724" y="17.455503786350736" z="-23.4955262901653" />
                 <point id="2" x="20.921653734403662" y="17.369587729364866" z="-23.4861522502033" />
                 <point id="3" x="20.884613638336305" y="17.308606259612134" z="-23.5185775340069" />
                 <point id="4" x="20.795717408997007" y="17.320175564469537" z="-23.5622320480179" />
@@ -2901,7 +2737,7 @@
                 <point id="49" x="20.926499996826752" y="17.38335921458993" z="-23.4806565470278" />
             </contour_points>
         </contour>
-        <contour id="45" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="43" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="110">
                 <pos x="21.01742121189881" y="17.519428818630097" z="-23.8341285595773" />
                 <tangent x="0.559602816833248" y="0.26867917501027" z="-0.784000120094439" />
@@ -2950,7 +2786,7 @@
                 <point id="29" x="21.111904864788894" y="17.5455393426307" z="-23.7577399587855" />
             </contour_points>
         </contour>
-        <contour id="46" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="44" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="113">
                 <pos x="21.162539371064209" y="17.567569140457937" z="-24.2217652542312" />
                 <tangent x="-0.322823954440134" y="-0.125607613738369" z="-0.93808710779468" />
@@ -2994,7 +2830,7 @@
                 <point id="25" x="21.250999728531959" y="17.620129444806434" z="-24.2592448194283" />
             </contour_points>
         </contour>
-        <contour id="47" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="45" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="116">
                 <pos x="20.8932121277" y="17.479237366" z="-24.597799683" />
                 <tangent x="-0.657277065113424" y="-0.182670148615775" z="-0.731176091294412" />
@@ -3049,7 +2885,7 @@
                 <point id="34" x="20.968593975034928" y="17.518409411509118" z="-24.6753491587428" />
             </contour_points>
         </contour>
-        <contour id="48" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="46" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="117">
                 <pos x="20.803615446783635" y="17.456844682463579" z="-24.6947442148884" />
                 <tangent x="-0.683672735030717" y="-0.145970520686999" z="-0.7150413963303" />
@@ -3092,7 +2928,7 @@
                 <point id="24" x="20.862787385162221" y="17.466466438500657" z="-24.7532845089346" />
             </contour_points>
         </contour>
-        <contour id="49" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="47" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="121">
                 <pos x="20.549601347681698" y="17.500402022825742" z="-25.1331437620456" />
                 <tangent x="-0.138446821305222" y="0.402565553857238" z="-0.904861012818043" />
@@ -3135,7 +2971,7 @@
                 <point id="24" x="20.619016701133329" y="17.497374648386739" z="-25.14511140296" />
             </contour_points>
         </contour>
-        <contour id="50" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="48" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="123">
                 <pos x="20.585288077068679" y="17.729597320124562" z="-25.368581520436" />
                 <tangent x="0.47471583108112" y="0.818434690042609" z="-0.323743012057126" />
@@ -3178,7 +3014,7 @@
                 <point id="24" x="20.653389158828691" y="17.704625423006629" z="-25.3318524041031" />
             </contour_points>
         </contour>
-        <contour id="51" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
+        <contour id="49" type="SplinePolygon" method="Manual" closed="true" min_control_number="4" max_control_number="200" subdivision_type="2" subdivision_number="0" subdivision_spacing="0.0390625">
             <path_point id="126">
                 <pos x="20.98290309085559" y="17.959092620758149" z="-25.4985230477426" />
                 <tangent x="0.947644335963945" y="0.178829814076909" z="-0.264556440315999" />
@@ -3186,7 +3022,7 @@
             </path_point>
             <control_points>
                 <point id="0" x="20.985961150538948" y="17.955404050759977" z="-25.4900623705112" />
-                <point id="1" x="20.992834088203793" y="17.962276988424822" z="-25.4607975882778" />
+                <point id="1" x="20.992834088203789" y="17.962276988424819" z="-25.4607975882779" />
                 <point id="2" x="21.005120078800246" y="17.892592119053006" z="-25.4638932711969" />
                 <point id="3" x="20.995172173948959" y="17.879874243633822" z="-25.5081235725083" />
                 <point id="4" x="20.975276363897137" y="17.92154273763299" z="-25.5512243288103" />
