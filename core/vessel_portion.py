@@ -189,7 +189,7 @@ class VesselPortion:
         return 0.52 * self.total_outlet_resistance
 
     def compute_Rvmicro(self):
-        return 0.0
+        return 0.00 * self.total_outlet_resistance
 
     def compute_Rv(self):
         return 0.16 * self.total_outlet_resistance

@@ -3,31 +3,33 @@ from numpy import linalg
 
 
 # we need to look for the position of the bifurcations and stenoses
-def build_slices(portions,
-                 stenoses_map, threshold_metric, min_stenoses_length, autodetect_stenoses,
-                 tol, maxlength, inlet_name):
+def build_slices(portions, problem_data):
     newportions = []
-    bifurcations = find_bifurcations(portions, tol)
-    if autodetect_stenoses:
-        stenoses = find_stenoses_automatically(portions,
-                                               threshold=threshold_metric, threshold_length=min_stenoses_length)
-    else:
-        stenoses = find_stenoses(portions, stenoses_map)
+    bifurcations = find_bifurcations(portions, problem_data.tol)
+    stenoses = None
+    if not problem_data.isHealthy:
+        if problem_data.autodetect_stenoses:
+            stenoses = find_stenoses_automatically(portions,
+                                                   threshold=problem_data.threshold_metric,
+                                                   threshold_length=problem_data.min_stenoses_length)
+        else:
+            stenoses = find_stenoses(portions, problem_data.stenoses)
     breakpoints = np.vstack((stenoses, bifurcations)) if stenoses is not None else bifurcations
-    breakpoints = simplify_bifurcations(breakpoints, tol)
+    breakpoints = simplify_bifurcations(breakpoints, problem_data.tol)
 
     for portion in portions:
-        curportions = portion.break_at_points(breakpoints, tol)
+        curportions = portion.break_at_points(breakpoints, problem_data.tol)
         identify_stenoses(curportions, stenoses, 1e-10)
         for (index, curportion) in enumerate(curportions):
-            slicedportions, joints = curportion.limit_length(tol, maxlength)
+            slicedportions, joints = curportion.limit_length(problem_data.tol, problem_data.maxlength)
 
             newportions += slicedportions
             breakpoints = np.vstack([breakpoints, joints]) if breakpoints.shape[0] > 0 else joints
 
     identify_stenoses(newportions, stenoses, 1e-10)
-    breakpoints = simplify_bifurcations(breakpoints, tol)
-    breakpoints, connectivity = build_connectivity(newportions, breakpoints, tol, inlet_name)
+    breakpoints = simplify_bifurcations(breakpoints, problem_data.tol)
+    breakpoints, connectivity = build_connectivity(newportions, breakpoints,
+                                                   problem_data.tol, problem_data.inlet_name)
 
     return newportions, breakpoints, connectivity
 
@@ -243,10 +245,16 @@ def find_stenoses_automatically(portions, threshold=0.85, threshold_length=0.5):
             #             cur_stenoses_points.append(portion.coords[start_idx, :])
             #             cur_stenoses_points.append(portion.coords[end_idx, :])
 
-        # # STRATEGY 2
-        # # identification of stenoses based on the value of M
+        # plt.figure()
+        # plt.plot(posarclength, M[posindices], '--o')
+        # plt.plot(posarclength, threshold * np.ones_like(posarclength), 'r-.')
+        # plt.title(f"{portion.pathname} - M")
+        # plt.show()
+
+        # STRATEGY 2
+        # identification of stenoses based on the value of M
         cur_stenoses_indices = []
-        window_len2 = 7
+        window_len2 = 5
         for idx in range(ncoords - window_len2):
             if M[idx] < threshold and M[idx+1] < threshold and \
                np.count_nonzero(M[idx:idx+window_len2] < threshold) >= 0.8 * window_len2 and \
@@ -321,9 +329,11 @@ def show_stenoses_details(portions, tol):
             portion.compute_mean_radius()
             portion.compute_min_radius()
             neighs = find_neighbours(portions, index_portion, tol)
-            for neigh in neighs['IN']:
-                portions[neigh].compute_mean_radius()
-            r0 = np.mean([portions[neigh].mean_radius for neigh in neighs['IN']])
+            r0 = 0
+            for in_neigh in neighs['IN']:
+                portions[in_neigh].compute_mean_radius()
+                if portions[in_neigh].mean_radius > r0:
+                    r0 = portions[in_neigh].mean_radius
             A0 = np.pi * r0**2
 
             print(f"Stenosis in vessel {portion.pathname} - Portion {index_portion}")

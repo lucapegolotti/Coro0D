@@ -127,6 +127,9 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     ax2.set_ylabel(variable_name + unit)
     ax2.set_xlim([t0, T])
 
+    print(f"\nAverage {variable_name} in portion {portion_index}: "
+          f"{np.mean(solutions[portion_index * 3 + variable_index, :] * scale)} {unit}")
+
     return fig, ax1, ax2
 
 

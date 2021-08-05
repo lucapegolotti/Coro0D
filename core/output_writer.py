@@ -42,14 +42,14 @@ class OutputWriter:
             fstr += str(float(self.portions[index].compute_Ca()) * coeff_c) + "\n"
 
             fstr += "REAL(8) :: Rmicro_" + self.portions[index].pathname + " = "
-            fstr += str(float(self.portions[index].compute_Ramicro() + \
-                              self.portions[index].compute_Rvmicro()) * coeff_r) + "\n"
+            fstr += str(float(self.portions[index].compute_Ramicro()) * coeff_r) + "\n"
 
             fstr += "REAL(8) :: Cim_" + self.portions[index].pathname + " = "
             fstr += str(float(self.portions[index].compute_Cim()) * coeff_c) + "\n"
 
             fstr += "REAL(8) :: Rv_" + self.portions[index].pathname + " = "
-            fstr += str(float(self.portions[index].compute_Rv()) * coeff_r) + "\n"
+            fstr += str(float(self.portions[index].compute_Rv() +
+                              self.portions[index].compute_Rvmicro()) * coeff_r) + "\n"
 
             fstr += "\n"
 

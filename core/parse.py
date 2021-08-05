@@ -14,13 +14,39 @@ def parse_vessels(fdr, problem_data):
     else:
         raise ValueError(problem_data.units + " units not implemented")
 
+    def isHealthyFilename(filename):
+        return len(filename) > 12 and filename[-12:-4] == "_healthy"
+
+    filenames = []
+    for filename in os.listdir(os.path.join(fdr, "Paths")):
+        try:
+            assert filename[-4:] == ".pth"
+        except AssertionError:
+            raise ValueError(f"Invalid file {filename} in 'Paths' folder.")
+
+        filenames.append(filename)
+
+        if not problem_data.isHealthy and isHealthyFilename(filename):
+            filenames.pop()
+
+        elif problem_data.isHealthy:
+            if isHealthyFilename(filename):
+                ref_filename = filename[:-12] + filename[-4:]
+                if ref_filename in filenames:
+                    filenames.remove(ref_filename)
+            else:
+                ref_filename = filename[:-4] + "_healthy.pth"
+                if ref_filename in filenames:
+                    filenames.pop()
+
     fullpaths = []
     index = 0
-    for filename in os.listdir(os.path.join(fdr, "Paths")):
+    for filename in filenames:
         if filename[0] != ".":
             index = index + 1
-            print(filename)
-            path = parse_single_path(os.path.join(fdr, "Paths", filename), filename[:-4],
+            pathname = filename[:-4] if not isHealthyFilename(filename) else filename[:-12]
+            print(f"Processing vessel {pathname}")
+            path = parse_single_path(os.path.join(fdr, "Paths", filename), pathname,
                                      coeff, problem_data.inlet_name)
             if path is not None:
                 filenamectgr = filename[:-4] + ".ctgr"

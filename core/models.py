@@ -81,11 +81,23 @@ class ModelStenosis(Model):
         self.L = 0.0
         self.R2 = 0.0
         self.r0 = r0
+        self.S = 1.0
 
         super().__init__(portion, problem_data)
 
+        self.compute_S()
         self.compute_L()
         self.compute_R2()
+
+        return
+
+    def compute_S(self):
+        self.vessel_portion.compute_min_radius()
+
+        A0 = np.pi * self.r0**2
+        A = np.pi * self.vessel_portion.min_radius**2
+
+        self.S = 1 - A/A0
 
         return
 
@@ -146,6 +158,7 @@ class YoungTsai(ModelStenosis):
     def compute_R2(self):
         self.vessel_portion.compute_min_radius()
         Kt = 1.52
+        # Kt = 27.3 * 1e-16 * np.exp(34 * self.S) + 0.26 * np.exp(1.51 * self.S)
         self.R2 = float((Kt * self.problem_data.density) /
                         (2 * np.pi ** 2 * self.r0 ** 4) *
                         ((self.r0 / self.vessel_portion.min_radius) ** 2 - 1) ** 2)
@@ -223,7 +236,7 @@ class ItuSharma(ModelStenosis):
         self.vessel_portion.compute_min_radius()
         omega = self.HR * 2 * np.pi / 60.0
         alpha = self.r0 * np.sqrt(self.problem_data.density * omega / self.problem_data.viscosity)
-        Kv = 1 + 0.053 * self.vessel_portion.min_radius / self.r0 * alpha ** 2
+        Kv = 1 + 0.053 * (self.vessel_portion.min_radius / self.r0)**2 * alpha ** 2
 
         posindices = np.where(self.vessel_portion.radii > 0)
         posradii = self.vessel_portion.radii[posindices]
@@ -259,6 +272,7 @@ class ItuSharma(ModelStenosis):
     def compute_R2(self):
         self.vessel_portion.compute_min_radius()
         Kt = 1.52
+        # Kt = 27.3 * 1e-16 * np.exp(34 * self.S) + 0.26 * np.exp(1.51 * self.S)
         self.R2 = float((Kt * self.problem_data.density) /
                         (2 * np.pi ** 2 * self.r0 ** 4) *
                         ((self.r0 / self.vessel_portion.min_radius) ** 2 - 1) ** 2)
@@ -283,9 +297,7 @@ class ItuSharma(ModelStenosis):
 
         # Rtot = self.MAP / self.CO
         # Rpart = self.vessel_portion.downstream_outlet_resistance
-        #
         # Rcoeff = Rtot / Rpart
-        #
         # K = Kc * Rvc * Rcoeff * self.CO
 
         K = Kc * Rvc * self.sol_steady[2]  # the steady flow is used as mean flow!

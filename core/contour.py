@@ -3,23 +3,18 @@ import numpy as np
 
 
 class Contour:
-    def __init__(self, control_point, contour, id):
+    def __init__(self, control_point, contour, id_path):
         self.control_point = control_point
         self.contour = contour
-        self.id_path = id
+        self.id_path = id_path
 
         npoints = contour.shape[0]
-        center = np.zeros([1, 3])
-
-        for icont in range(npoints):
-            center += contour[icont, :]
-
-        center /= npoints
+        center = contour[0, :]
 
         crossp = np.zeros([1, 3])
         # we calculate the area using this formula
         # https://math.stackexchange.com/questions/3207981/caculate-area-of-polygon-in-3d
-        for icont in range(npoints - 1):
+        for icont in range(1, npoints - 1):
             crossp += np.cross(contour[icont, :] - center, contour[icont + 1, :] - center)
 
         crossp += np.cross(contour[-1, :] - center, contour[0, :] - center)
