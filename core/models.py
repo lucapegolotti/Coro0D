@@ -5,7 +5,7 @@ from scipy.integrate import simps
 
 # The constitutive equation is written in this form:
 #
-# [a, b, c]\dot{[P_in, P_out, Q]^T} = [d, e, f][P_in, P_out, Q]^T + K
+# A * [P_in, P_out, Q_in, Q_out]^T = B * [P_in, P_out, Q_in, Q_out]^T + K
 
 class Model(ABC):
 
@@ -14,9 +14,11 @@ class Model(ABC):
         self.problem_data = problem_data
         self.R = 0.0
         self.C = 0.0
+        self.L = 0.0
 
         self.compute_R()
         self.compute_C()
+        self.compute_L()
 
         return
 
@@ -28,57 +30,110 @@ class Model(ABC):
     def compute_C(self):
         pass
 
-    # this is the method that computes [a, b, c]
-    def get_vector_dot(self):
-        return np.array([self.R * self.C, -self.R * self.C, 0.0])
+    @abstractmethod
+    def compute_L(self):
+        pass
 
-    # this is the method that computes [d, e, f]
-    def get_vector(self):
-        return np.array([-1.0, 1.0, self.R])
+    # this is the method that computes A
+    def get_matrix_dot(self):
+        return np.array([[0.0, 0.0, self.L, 0.0],
+                         [0.0, self.C, 0.0, 0.0]])
 
-    # this is the method to compute the constant K
+    # this is the method that computes B
+    def get_matrix(self):
+        return np.array([[1.0, -1.0, -self.R, 0.0],
+                         [0.0, 0.0, 1.0, -1.0]])
+
+    # this is the method that computes K
     def get_constant(self):
-        return 0.0
+        return np.array([[0.0, 0.0]]).T
 
 
-class Resistance(Model):
+class R_model(Model):
     def __init__(self, portion, problem_data):
         super().__init__(portion, problem_data)
         return
 
     def compute_R(self):
-        self.vessel_portion.compute_mean_radius()
-        self.R = float(128 * self.problem_data.viscosity * self.vessel_portion.arclength[-1] /
-                       (np.pi * ((2 * self.vessel_portion.mean_radius) ** 4)))
+        posindices = np.where(self.vessel_portion.radii > 0)
+        posradii = self.vessel_portion.radii[posindices]
+        posarclength = self.vessel_portion.arclength[posindices]
+        posarclength = np.subtract(posarclength, posarclength[0])
+
+        integral = simps(posradii ** (-4), posarclength)
+        self.R = 8 * self.problem_data.viscosity * integral / np.pi
+
         return
 
     def compute_C(self):
         self.C = 0.0
         return
 
+    def compute_L(self):
+        self.L = 0.0
+        return
 
-class Windkessel2(Resistance):
+
+class RC_model(R_model):
     def __init__(self, portion, problem_data):
         super().__init__(portion, problem_data)
         return
 
     def compute_C(self):
         self.vessel_portion.compute_mean_radius()
-        self.C = float(np.pi * ((2 * self.vessel_portion.mean_radius) ** 3) * self.vessel_portion.arclength[-1] /
-                       (4 * self.problem_data.E * self.problem_data.thickness_ratio *
-                        (2 * self.vessel_portion.mean_radius)))
+
+        posindices = np.where(self.vessel_portion.radii > 0)
+        posradii = self.vessel_portion.radii[posindices]
+        posarclength = self.vessel_portion.arclength[posindices]
+        posarclength = np.subtract(posarclength, posarclength[0])
+        integral = simps(posradii ** 3, posarclength)
+
+        self.C = float(np.pi * integral /
+                       (self.problem_data.E * self.problem_data.thickness_ratio * self.vessel_portion.mean_radius))
         return self.C
+
+
+class RL_model(R_model):
+    def __init__(self, portion, problem_data):
+        super().__init__(portion, problem_data)
+        return
+
+    def compute_L(self):
+        posindices = np.where(self.vessel_portion.radii > 0)
+        posradii = self.vessel_portion.radii[posindices]
+        posarclength = self.vessel_portion.arclength[posindices]
+        posarclength = np.subtract(posarclength, posarclength[0])
+
+        integral = simps(posradii ** (-2), posarclength)
+        self.L = (self.problem_data.density / np.pi) * integral
+
+        return
+
+
+class RLC_model(RC_model, RL_model):
+    def __init__(self, portions, problem_data):
+        RC_model.__init__(self, portions, problem_data)
+        RL_model.__init__(self, portions, problem_data)
+        return
+
+    def compute_R(self):
+        return RC_model.compute_R(self)
+
+    def compute_C(self):
+        return RC_model.compute_C(self)
+
+    def compute_L(self):
+        return RL_model.compute_L(self)
 
 
 # The constitutive equation is written in this form:
 #
-# [a, b, c]\dot{[P_in, P_out, Q]^T} = [d, e, f][P_in, P_out, Q]^T + [g, h, i][P_in^2, P_out^2, Q^2]^T
+# A * [P_in, P_out, Q_in, Q_out]^T = B * [P_in, P_out, Q_in, Q_out]^T + C * f([P_in, P_out, Q_in, Q_out])^T + K
 
 
 class ModelStenosis(Model):
 
     def __init__(self, portion, problem_data, r0):
-        self.L = 0.0
         self.R2 = 0.0
         self.r0 = r0
         self.S = 1.0
@@ -86,7 +141,6 @@ class ModelStenosis(Model):
         super().__init__(portion, problem_data)
 
         self.compute_S()
-        self.compute_L()
         self.compute_R2()
 
         return
@@ -102,32 +156,37 @@ class ModelStenosis(Model):
         return
 
     @abstractmethod
-    def compute_L(self):
-        pass
-
-    @abstractmethod
     def compute_R2(self):
         pass
 
-    # this is the method that computes [a, b, c]
-    def get_vector_dot(self):
-        return np.array([self.R * self.C, -self.R * self.C, -self.L])
-
-    # this is the method that computes [d, e, f]
-    def get_vector(self):
-        return np.array([-1.0, 1.0, self.R])
-
-    # this is the method that computes [g, h, i]
-    def get_vector_nonlinear(self):
-        return np.array([0.0, 0.0, self.R2])
+    @abstractmethod
+    def nonlinear_function(self, sol):
+        pass
 
     @abstractmethod
+    def nonlinear_function_der(self, sol):
+        pass
+
+    # this is the method that computes C
+    def get_matrix_nonlinear(self):
+        return np.array([[0.0, 0.0, -self.R2, 0.0],
+                         [0.0, 0.0, 0.0, 0.0]])
+
     def evaluate_nonlinear(self, sol, index):
-        pass
+        mat = self.get_matrix_nonlinear()
+        local_sol = sol[4 * index:4 * (index + 1), 0]
+        nl_sol = self.nonlinear_function(local_sol)
+        retVec = np.dot(mat, nl_sol)
+        retVec = np.reshape(retVec, (2, 1))
+        return retVec
 
-    @abstractmethod
     def evaluate_jacobian_nonlinear(self, sol, index):
-        pass
+        mat = self.get_matrix_nonlinear()
+        local_sol = sol[4 * index:4 * (index + 1), 0]
+        nl_sol_der = self.nonlinear_function_der(local_sol)
+        retMat = np.array([[mat[0, i] * nl_sol_der[i] for i in range(4)],
+                           [mat[1, i] * nl_sol_der[i] for i in range(4)]])
+        return retMat
 
 
 class YoungTsai(ModelStenosis):
@@ -165,18 +224,11 @@ class YoungTsai(ModelStenosis):
 
         return
 
-    def evaluate_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = local_sol * np.abs(local_sol)
-        return np.inner(vec, nl_sol)
+    def nonlinear_function(self, sol):
+        return sol * np.abs(sol)
 
-    def evaluate_jacobian_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = 2.0 * local_sol * np.sign(local_sol)
-        retVec = np.array([vec[i] * nl_sol[i] for i in range(3)])
-        return retVec
+    def nonlinear_function_der(self, sol):
+        return 2.0 * sol * np.sign(sol)
 
 
 class Garcia(ModelStenosis):
@@ -210,18 +262,11 @@ class Garcia(ModelStenosis):
 
         return
 
-    def evaluate_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = np.square(local_sol)
-        return np.inner(vec, nl_sol)
+    def nonlinear_function(self, sol):
+        return np.square(sol)
 
-    def evaluate_jacobian_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = 2.0 * local_sol
-        retVec = np.array([vec[i] * nl_sol[i] for i in range(3)])
-        return retVec
+    def nonlinear_function_der(self, sol):
+        return 2.0 * sol
 
 
 class ItuSharma(ModelStenosis):
@@ -291,7 +336,7 @@ class ItuSharma(ModelStenosis):
         posradii = self.vessel_portion.radii[posindices]
         posarclength = self.vessel_portion.arclength[posindices]
         posarclength = np.subtract(posarclength, posarclength[0])
-        # we compute the mean radius using the integral over the arclength
+
         integral = simps(posradii ** (-4), posarclength)
         Rvc = (8 * self.problem_data.viscosity / np.pi) * integral
 
@@ -300,28 +345,22 @@ class ItuSharma(ModelStenosis):
         # Rcoeff = Rtot / Rpart
         # K = Kc * Rvc * Rcoeff * self.CO
 
-        K = Kc * Rvc * self.sol_steady[2]  # the steady flow is used as mean flow!
+        K = Kc * Rvc * self.sol_steady[2]  # the steady inflow is used as mean flow!
+        retVec = np.array([[-K, 0.0]]).T
 
-        return K
-
-    def evaluate_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = local_sol * np.abs(local_sol)
-        return np.inner(vec, nl_sol)
-
-    def evaluate_jacobian_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = 2.0 * local_sol * np.sign(local_sol)
-        retVec = np.array([vec[i] * nl_sol[i] for i in range(3)])
         return retVec
 
+    def nonlinear_function(self, sol):
+        return sol * np.abs(sol)
 
-class ResistanceStenosis(ModelStenosis, Resistance):
+    def nonlinear_function_der(self, sol):
+        return 2.0 * sol * np.sign(sol)
+
+
+class ResistanceStenosis(ModelStenosis, R_model):
     def __init__(self, portion, problem_data, r0):
         ModelStenosis.__init__(self, portion, problem_data, r0)
-        Resistance.__init__(self, portion, problem_data)
+        R_model.__init__(self, portion, problem_data)
         return
 
     def compute_L(self):
@@ -329,53 +368,16 @@ class ResistanceStenosis(ModelStenosis, Resistance):
         return
 
     def compute_R2(self):
-        self.vessel_portion.compute_mean_radius()
+        self.vessel_portion.compute_min_radius()
         Kt = 1.52
         self.R2 = float((Kt * self.problem_data.density) /
                         (2 * np.pi ** 2 * self.r0 ** 4) *
-                        ((self.r0 / self.vessel_portion.mean_radius) ** 2 - 1) ** 2)
+                        ((self.r0 / self.vessel_portion.min_radius) ** 2 - 1) ** 2)
 
         return self.R2
 
-    def evaluate_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = np.square(local_sol)
-        return np.inner(vec, nl_sol)
+    def nonlinear_function(self, sol):
+        return np.square(sol)
 
-    def evaluate_jacobian_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = 2.0 * local_sol
-        retVec = np.array([vec[i] * nl_sol[i] for i in range(3)])
-        return retVec
-
-
-class Windkessel2Stenosis(ResistanceStenosis, Windkessel2):
-    def __init__(self, portion, problem_data, r0):
-        ResistanceStenosis.__init__(self, portion, problem_data, r0)
-        Windkessel2.__init__(self, portion, problem_data)
-        return
-
-    def compute_C(self):
-        Windkessel2.compute_C(self)
-        return
-
-    def get_vector_dot(self):
-        return ResistanceStenosis.get_vector_dot(self)
-
-    def get_vector(self):
-        return ResistanceStenosis.get_vector(self)
-
-    def evaluate_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = np.square(local_sol)
-        return np.inner(vec, nl_sol)
-
-    def evaluate_jacobian_nonlinear(self, sol, index):
-        vec = self.get_vector_nonlinear()
-        local_sol = sol[3 * index:3 * (index + 1), 0]
-        nl_sol = 2.0 * local_sol
-        retVec = np.array([vec[i] * nl_sol[i] for i in range(3)])
-        return retVec
+    def nonlinear_function_der(self, sol):
+        return 2.0 * sol

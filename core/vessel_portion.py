@@ -205,10 +205,7 @@ class VesselPortion:
             posindices = np.where(self.radii > 0)
             posradii = self.radii[posindices]
             posarclength = self.arclength[posindices]
-
-            if len(posarclength) == 0:
-                breakpoint()
-                posarclength = np.subtract(posarclength, posarclength[0])
+            posarclength = np.subtract(posarclength, posarclength[0])
             # we compute the mean radius using the integral over the arclength
             integrated_radius = simps(posradii, posarclength)
             self.mean_radius = integrated_radius / (posarclength[-1] - posarclength[0])

@@ -34,7 +34,7 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.005
+        self.deltat = 0.001
         # initial time
         self.t0 = 0.0
         # final time
@@ -92,7 +92,7 @@ def main():
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='ItuSharma',
+    blocks = create_physical_blocks(chunks, model_type='RC_model', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",
@@ -105,25 +105,25 @@ def main():
     bdf = BDF2(ode_system, connectivity, pd, sd, bcmanager)
     solutions, times = bdf.run()
     show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.T)
-    show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
+    show_animation(solutions, times, pd.t0, chunks, 'Q_in', resample=4,
                    inlet_index=bcmanager.inletindex)
 
     show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
     for stenotic_portion in stenotic_portions:
-        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q')
-        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'Pout')
+        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q_out')
+        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'P_out')
 
     positive_times = np.where(times > pd.t0)[0]
-    Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]
-    Qin = solutions[bcmanager.inletindex * 3 + 2, positive_times]
+    P_in = solutions[bcmanager.inletindex * 4 + 0, positive_times]
+    Q_in = solutions[bcmanager.inletindex * 4 + 2, positive_times]
     CO = np.loadtxt(os.path.join(fdr, os.path.normpath("Data/cardiac_output.txt")), ndmin=1)[0]
     CO *= (1000 / 60)  # conversion from L/min to mL/s
     CO *= 0.04  # 4% of flow goes in coronaries
     CO *= (0.7 if pd.side == "left" else 0.3 if pd.side == "right" else 0.0)
-    print("\nFlow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    print("\nFlow = " + str(simps(Q_in, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
     print("Target Flow = " + str(CO) + " [mL/s]")
-    print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
+    print("Mean inlet pressure = " + str(simps(P_in, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
 
     ow = OutputWriter("Output", bcmanager, chunks, pd)
     ow.write_outlet_rc()

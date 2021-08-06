@@ -33,7 +33,7 @@ class ProblemData:
         # use pressure at inlet
         self.use_inlet_pressure = True
         # timestep size
-        self.deltat = 0.001
+        self.deltat = 0.00025
         # initial time
         self.t0 = 0.0
         # final time
@@ -67,7 +67,7 @@ class ProblemData:
 class SolverData:
     def __init__(self):
         # tolerance on the relative error in Newton's iterations
-        self.tol = 1e-6
+        self.tol = 1e-5
         # minimal absolute error in Newton's iterations
         self.min_err = 1e-15
         # maximal number of Newton's iterations
@@ -104,17 +104,17 @@ def main():
                           distal_pressure_shift=10)
 
     # setting up the blocks and computing a steady solution
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='YoungTsai',
+    blocks = create_physical_blocks(chunks, model_type='R_model', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity)
 
     ode_system_steady = ODESystem(blocks, connectivity, bcmanager)
     sol_steady = ode_system_steady.solve_steady()
     for stenotic_portion in stenotic_portions:
-        print(f"Steady flow in portion 15: {sol_steady[stenotic_portion*3+2]}")
+        print(f"Steady outflow in portion {stenotic_portion}: {sol_steady[stenotic_portion*4+3]}")
     print("\n")
 
     # re-setting up the blocks, using the pre-computed steady solution, and solving the unsteady problem
-    blocks = create_physical_blocks(chunks, model_type='Windkessel2', stenosis_model_type='ItuSharma',
+    blocks = create_physical_blocks(chunks, model_type='RL_model', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity, sol_steady=sol_steady)
 
     ode_system = ODESystem(blocks, connectivity, bcmanager)
@@ -122,25 +122,25 @@ def main():
     solutions, times = tma.run()
 
     show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.T)
-    # show_animation(solutions, times, pd.t0, chunks, 'Q', resample=4,
+    # show_animation(solutions, times, pd.t0, chunks, 'Q_in', resample=4,
     #                inlet_index=bcmanager.inletindex)
 
     # show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
 
     for stenotic_portion in stenotic_portions:
-        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q')
-        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'Pout')
+        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q_out')
+        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'P_out')
 
     positive_times = np.where(times > pd.t0)[0]
-    Pin = solutions[bcmanager.inletindex * 3 + 0, positive_times]
-    Qin = solutions[bcmanager.inletindex * 3 + 2, positive_times]
+    P_in = solutions[bcmanager.inletindex * 4 + 0, positive_times]
+    Q_in = solutions[bcmanager.inletindex * 4 + 2, positive_times]
     CO = np.loadtxt(os.path.join(fdr, os.path.normpath("Data/cardiac_output.txt")), ndmin=1)[0]
     CO *= (1000 / 60)  # conversion from L/min to mL/s
     CO *= 0.04  # 4% of flow goes in coronaries
     CO *= (0.7 if pd.side == "left" else 0.3 if pd.side == "right" else 0.0)
-    print("\nFlow = " + str(simps(Qin, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    print("\nFlow = " + str(simps(Q_in, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
     print("Target Flow = " + str(CO) + " [mL/s]")
-    print("Mean inlet pressure = " + str(simps(Pin, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]\n")
+    print("Mean inlet pressure = " + str(simps(P_in, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]\n")
 
     ow = OutputWriter("Output", bcmanager, chunks, pd)
     ow.write_outlet_rc()

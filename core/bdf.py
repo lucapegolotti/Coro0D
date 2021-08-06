@@ -69,7 +69,7 @@ class BDF:
 
                     # initial_guess = self.solver.solve_linear(self.lhsmatrix, rhs)
                     initial_guess = self.extrapolated_solution(prev_solutions)
-                    initial_guess[self.bc_manager.inletindex * 3] = self.bc_manager.inletbc.inlet_function(t)
+                    initial_guess[self.bc_manager.inletindex * 4 + 0] = self.bc_manager.inletbc.inlet_function(t)
 
                     def fun(sol):
                         retVec = self.lhsmatrix.dot(sol)
@@ -80,7 +80,7 @@ class BDF:
 
                     def jac(sol):
                         retMat = self.lhsmatrix
-                        # retMat += self.beta() * self.deltat * self.ode_system.evaluate_jacobian_nonlinear(sol)
+                        # retMat -= self.beta() * self.deltat * self.ode_system.evaluate_jacobian_nonlinear(sol)
                         return retMat
 
                     u = self.solver.solve_nonlinear(fun, jac, initial_guess)
@@ -222,7 +222,7 @@ class CN:
             else:
                 # initial_guess = self.solver.solve_linear(self.lhsmatrix, rhs)
                 initial_guess = prev_solution[:]
-                initial_guess[self.bc_manager.inletindex * 3] = self.bc_manager.inletbc.inlet_function(t)
+                initial_guess[self.bc_manager.inletindex * 4 + 0] = self.bc_manager.inletbc.inlet_function(t)
 
                 def fun(sol):
                     retVec = self.lhsmatrix.dot(sol)

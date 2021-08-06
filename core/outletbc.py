@@ -57,11 +57,11 @@ class OutletBC:
 
         # continuity of pressure with neighboring portion
         matrix[row + 4, col + 0] = 1
-        matrix[row + 4, self.portionindex * 3 + 1] = -1  # outlet pressure of portion
+        matrix[row + 4, self.portionindex * 4 + 1] = -1  # outlet pressure of portion
 
         # continuity of flowrate with neighboring portion
         matrix[row + 5, col + 2] = 1
-        matrix[row + 5, self.portionindex * 3 + 2] = -1
+        matrix[row + 5, self.portionindex * 4 + 3] = -1  # outflow of portion
 
         return 6
 

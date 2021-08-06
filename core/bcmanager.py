@@ -56,7 +56,7 @@ class BCManager:
     def add_bcs_dot(self, matrix_dot):
         self.inletbc.apply_bc_matrix_dot(matrix_dot, self.starting_row)
 
-        curcol = len(self.portions) * 3
+        curcol = len(self.portions) * 4
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):
             currow += self.outletbcs[ibc].apply_bc_matrix_dot(matrix_dot,
@@ -69,7 +69,7 @@ class BCManager:
     def add_bcs(self, matrix):
         self.inletbc.apply_bc_matrix(matrix, self.starting_row)
 
-        curcol = len(self.portions) * 3
+        curcol = len(self.portions) * 4
         currow = self.starting_row + 1
         for ibc in range(len(self.outletbcs)):
             currow += self.outletbcs[ibc].apply_bc_matrix(matrix,

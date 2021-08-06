@@ -11,13 +11,17 @@ class PhysicalBlock:
         self.portion = vessel_portion
         self.isStenotic = self.portion.isStenotic
 
-        # NON-STENOSIS MODEL
-        if model_type == "Windkessel2":
-            self.model = Windkessel2(vessel_portion, problem_data)
-        elif model_type == "Resistance":
-            self.model = Resistance(vessel_portion, problem_data)
+        # NON-STENOTIC MODELS
+        if model_type == "R_model":
+            self.model = R_model(vessel_portion, problem_data)
+        elif model_type == "RC_model":
+            self.model = RC_model(vessel_portion, problem_data)
+        elif model_type == "RL_model":
+            self.model = RL_model(vessel_portion, problem_data)
+        elif model_type == "RLC_model":
+            self.model = RLC_model(vessel_portion, problem_data)
 
-        # STENOSIS MODELS
+        # STENOTIC MODELS
         elif model_type == "YoungTsai":
             assert 'r0' in other_data.keys()
             self.model = YoungTsai(vessel_portion, problem_data, other_data['r0'])
@@ -35,9 +39,6 @@ class PhysicalBlock:
         elif model_type == "ResistanceStenosis":
             assert 'r0' in other_data.keys()
             self.model = ResistanceStenosis(vessel_portion, problem_data, other_data['r0'])
-        elif model_type == "Windkessel2Stenosis":
-            assert 'r0' in other_data.keys()
-            self.model = Windkessel2Stenosis(vessel_portion, problem_data, other_data['r0'])
         else:
             raise NotImplementedError(model_type + " not implemented!")
 
@@ -74,7 +75,7 @@ def create_physical_blocks(portions, model_type, stenosis_model_type, problem_da
                 other_data['HR'] = HR
 
                 if sol_steady is not None:
-                    other_data['sol_steady'] = sol_steady[index_portion*3:(index_portion+1)*3]
+                    other_data['sol_steady'] = sol_steady[index_portion*4:(index_portion+1)*4]
                 else:
                     other_data['sol_steady'] = None
 

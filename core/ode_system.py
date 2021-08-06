@@ -7,7 +7,7 @@ class ODESystem:
         self.blocks = blocks
         self.connectivity = connectivity
         self.bc_manager = bc_manager
-        self.nvariables = 3 * nblocks + \
+        self.nvariables = 4 * nblocks + \
                           bc_manager.noutlets * bc_manager.outletbcs[0].nvariables
 
         self.smatrix_dot = self.assemble_system_matrix_dot()
@@ -36,10 +36,9 @@ class ODESystem:
         nblocks = len(self.blocks)
         smatrix_dot = np.zeros([self.nvariables, self.nvariables])
         for i in range(nblocks):
-            vecdot = self.blocks[i].model.get_vector_dot()
-            smatrix_dot[i, 3 * i + 0] = vecdot[0]
-            smatrix_dot[i, 3 * i + 1] = vecdot[1]
-            smatrix_dot[i, 3 * i + 2] = vecdot[2]
+            matdot = self.blocks[i].model.get_matrix_dot()
+            smatrix_dot[2*i, 4*i:4*(i+1)] = matdot[0]
+            smatrix_dot[2*i+1, 4*i:4*(i+1)] = matdot[1]
 
         return smatrix_dot
 
@@ -47,10 +46,9 @@ class ODESystem:
         nblocks = len(self.blocks)
         smatrix = np.zeros([self.nvariables, self.nvariables])
         for i in range(nblocks):
-            vecdot = self.blocks[i].model.get_vector()
-            smatrix[i, 3 * i + 0] = vecdot[0]
-            smatrix[i, 3 * i + 1] = vecdot[1]
-            smatrix[i, 3 * i + 2] = vecdot[2]
+            mat = self.blocks[i].model.get_matrix()
+            smatrix[2 * i, 4 * i:4 * (i + 1)] = mat[0]
+            smatrix[2 * i + 1, 4 * i:4 * (i + 1)] = mat[1]
 
         self.add_constraints(smatrix)
 
@@ -58,7 +56,7 @@ class ODESystem:
 
     def add_constraints(self, matrix):
         nblocks = len(self.blocks)
-        constraintrow = nblocks
+        constraintrow = 2 * nblocks
         # add constraints
         for connectivity in self.connectivity:
             # conservation of flow
@@ -67,10 +65,11 @@ class ODESystem:
                 # incoming flow
                 if connectivity[iflag] in {0.5, 1}:
                     isboundary = False
-                    matrix[constraintrow, 3 * iflag + 2] = 1
+                    matrix[constraintrow, 4 * iflag + 3] = 1
+                # outgoing flow
                 if connectivity[iflag] in {-1, -0.5}:
                     isboundary = False
-                    matrix[constraintrow, 3 * iflag + 2] = -1
+                    matrix[constraintrow, 4 * iflag + 2] = -1
             if not isboundary:
                 constraintrow += 1
 
@@ -82,16 +81,16 @@ class ODESystem:
             for i in range(1, nindices):
                 if connectivity[indices[0]] in {0.5, 1}:
                     # + 0 corresponds to inlet
-                    matrix[constraintrow, 3 * indices[0] + 0] = 1
+                    matrix[constraintrow, 4 * indices[0] + 0] = 1
                 else:
                     # + 1 corresponds to outlet
-                    matrix[constraintrow, 3 * indices[0] + 1] = 1
+                    matrix[constraintrow, 4 * indices[0] + 1] = 1
                 if connectivity[indices[i]] in {0.5, 1}:
                     # + 0 corresponds to inlet
-                    matrix[constraintrow, 3 * indices[i] + 0] = -1
+                    matrix[constraintrow, 4 * indices[i] + 0] = -1
                 else:
                     # + 1 corresponds to outlet
-                    matrix[constraintrow, 3 * indices[i] + 1] = -1
+                    matrix[constraintrow, 4 * indices[i] + 1] = -1
                 constraintrow += 1
 
         self.rowbcs = constraintrow
@@ -102,7 +101,7 @@ class ODESystem:
         nblocks = len(self.blocks)
         Kvec = np.zeros([self.nvariables, 1])
         for i in range(nblocks):
-            Kvec[i] = self.blocks[i].model.get_constant()
+            Kvec[2*i:2*(i+1)] = self.blocks[i].model.get_constant()
 
         return Kvec
 
@@ -110,8 +109,8 @@ class ODESystem:
         nblocks = len(self.blocks)
         nlvec = np.zeros([self.nvariables, 1])
         for i in range(nblocks):
-            nlvec[i] = self.blocks[i].model.evaluate_nonlinear(sol, i) \
-                       if self.blocks[i].isStenotic else 0
+            nlvec[2*i:2*(i+1)] = self.blocks[i].model.evaluate_nonlinear(sol, i) \
+                                 if self.blocks[i].isStenotic else np.zeros((2, 1))
 
         return nlvec
 
@@ -119,8 +118,8 @@ class ODESystem:
         nblocks = len(self.blocks)
         jacmatrix = np.zeros([self.nvariables, self.nvariables])
         for i in range(nblocks):
-            jacmatrix[i, 3*i:3*(i+1)] = self.blocks[i].model.evaluate_jacobian_nonlinear(sol, i) \
-                                        if self.blocks[i].isStenotic else np.zeros(3)
+            jacmatrix[2*i:2*(i+1), 4*i:4*(i+1)] = self.blocks[i].model.evaluate_jacobian_nonlinear(sol, i) \
+                                                  if self.blocks[i].isStenotic else np.zeros((2, 4))
 
         return jacmatrix
 

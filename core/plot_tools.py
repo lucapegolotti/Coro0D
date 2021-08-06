@@ -103,32 +103,36 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     ax1.set_yticklabels([])
     ax1.set_xticklabels([])
     ax1.set_zticklabels([])
-    scale = 1
 
-    if variable_name == 'Pin':
+    if variable_name == 'P_in':
         variable_index = 0
         scale = 1 / 1333.2  # we convert the pressure back to mmHg
         unit = ' [mmHg]'
-    elif variable_name == 'Pout':
+    elif variable_name == 'P_out':
         variable_index = 1
         scale = 1 / 1333.2
         unit = ' [mmHg]'
-    elif variable_name == 'Q':
+    elif variable_name == 'Q_in':
         variable_index = 2
+        scale = 1
+        unit = ' [mL/s]'
+    elif variable_name == 'Q_out':
+        variable_index = 3
+        scale = 1
         unit = ' [mL/s]'
     else:
         raise ValueError(f"Unknown variable name {variable_name}")
 
     ax2 = fig.add_subplot(1, 2, 2)
-    ax2.plot(times, solutions[portion_index * 3 + variable_index, :] * scale)
-    ax2.plot(times, np.mean(solutions[portion_index * 3 + variable_index, :] * scale) * np.ones_like(times), 'r-.')
+    ax2.plot(times, solutions[portion_index * 4 + variable_index, :] * scale)
+    ax2.plot(times, np.mean(solutions[portion_index * 4 + variable_index, :] * scale) * np.ones_like(times), 'r-.')
     ax2.set_title(variable_name + ", portion: " + str(portion_index))
     ax2.set_xlabel("time [s]")
     ax2.set_ylabel(variable_name + unit)
     ax2.set_xlim([t0, T])
 
     print(f"\nAverage {variable_name} in portion {portion_index}: "
-          f"{np.mean(solutions[portion_index * 3 + variable_index, :] * scale)} {unit}")
+          f"{np.mean(solutions[portion_index * 4 + variable_index, :] * scale)} {unit}")
 
     return fig, ax1, ax2
 
@@ -136,15 +140,16 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
 def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
     fig = plt.figure()
 
-    if variable_name == 'Pin':
+    if variable_name == 'P_in':
         variable_index = 0
-    elif variable_name == 'Pout':
+    elif variable_name == 'P_out':
         variable_index = 1
     else:
-        raise ValueError(f"Unknown variable name {variable_name}")
+        raise ValueError(f"Unknown variable name {variable_name} to evaluate the FFR")
 
     ax = fig.add_subplot(1, 1, 1)
-    ffr = solutions[portion_index * 3 + variable_index, 1:] / solutions[BCmanager.inletindex * 3 + variable_index, 1:]
+    ffr = solutions[portion_index * 4 + variable_index, 1:] / \
+          solutions[BCmanager.inletindex * 4 + variable_index, 1:]
     ax.plot(times[1:], ffr)
     ax.plot(times[1:], np.mean(ffr)*np.ones_like(times[1:]), '-.', linewidth=2)
     ax.set_title("FFR, portion: " + str(portion_index))
@@ -173,19 +178,22 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
     # we keep only the solutions from t0 on
     indices = np.where(times >= t0)[0]
     times = times[indices]
-    solutions = solutions[:nportions * 3, indices]
+    solutions = solutions[:nportions * 4, indices]
 
     times = times[::resample]
 
-    variables = solutions[:3 * nportions, ::resample]
-    if variable_name == 'Pin':
-        selectvariables = variables[0::3, :] / 1333.2
+    variables = solutions[:4 * nportions, ::resample]
+    if variable_name == 'P_in':
+        selectvariables = variables[0::4, :] / 1333.2
         units = ' [mmHg]'
-    elif variable_name == 'Pout':
-        selectvariables = variables[1::3, :] / 1333.2
+    elif variable_name == 'P_out':
+        selectvariables = variables[1::4, :] / 1333.2
         units = ' [mmHg]'
-    elif variable_name == 'Q':
-        selectvariables = variables[2::3, :]
+    elif variable_name == 'Q_in':
+        selectvariables = variables[2::4, :]
+        units = ' [mL/s]'
+    elif variable_name == 'Q_out':
+        selectvariables = variables[3::4, :]
         units = ' [mL/s]'
     else:
         raise ValueError(f"Unknown variable name {variable_name}")
@@ -237,18 +245,18 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
                                        blit=False)
     else:
         ax2 = fig.add_subplot(1, 2, 2)
-        ax2.plot(times, solutions[inlet_index * 3 + 0, ::resample] / 1333.2)
+        ax2.plot(times, solutions[inlet_index * 4 + 0, ::resample] / 1333.2)
         ax2.set_xlim([times[0], times[-1]])
         ax2.set_xlabel('t [s]')
-        ax2.set_ylabel('Pin [mmHg]')
-        dot, = ax2.plot(times[0], solutions[inlet_index * 3 + 0, 0] / 1333.2, 'ro')
+        ax2.set_ylabel('P_in [mmHg]')
+        dot, = ax2.plot(times[0], solutions[inlet_index * 4 + 0, 0] / 1333.2, 'ro')
         anim = animation.FuncAnimation(fig, update_dual, N,
                                        fargs=(ax1, times,
                                               selectvariables,
                                               lines, minv,
                                               maxv, timestamp,
                                               dot,
-                                              solutions[inlet_index * 3 + 0, ::resample] / 1333.2),
+                                              solutions[inlet_index * 4 + 0, ::resample] / 1333.2),
                                        interval=10,
                                        blit=False)
         plot_show()
@@ -282,12 +290,12 @@ def show_inlet_flow_vs_pressure(solutions, times, bc_manager, t0, T):
     ax = plt.axes()
     indices = np.where(np.logical_and(times >= t0, times <= T))
     times = times[indices]
-    flow = solutions[inlet_index * 3 + 2, indices].squeeze()
+    flow = solutions[inlet_index * 4 + 2, indices].squeeze()
     # we get min and max flow in order to translate the pressure
     mflow = np.min(flow)
     Mflow = np.max(flow)
 
-    pressure = solutions[inlet_index * 3 + 0, indices].squeeze()
+    pressure = solutions[inlet_index * 4 + 0, indices].squeeze()
     mpres = np.min(pressure)
     Mpres = np.max(pressure)
 

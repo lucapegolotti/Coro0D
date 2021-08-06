@@ -107,9 +107,9 @@ class InletBC:
 
     def apply_bc_matrix(self, matrix, row):
         if self.bc_type == "pressure":
-            matrix[row, self.index * 3 + 0] = -1
+            matrix[row, self.index * 4 + 0] = -1
         elif self.bc_type == "flowrate":
-            matrix[row, self.index * 3 + 2] = -1
+            matrix[row, self.index * 4 + 2] = -1
         else:
             raise NotImplementedError(self.bc_type + " bc not implemented")
 
