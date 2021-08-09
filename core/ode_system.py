@@ -65,11 +65,11 @@ class ODESystem:
                 # incoming flow
                 if connectivity[iflag] in {0.5, 1}:
                     isboundary = False
-                    matrix[constraintrow, 4 * iflag + 3] = 1
+                    matrix[constraintrow, 4 * iflag + 2] = 1
                 # outgoing flow
                 if connectivity[iflag] in {-1, -0.5}:
                     isboundary = False
-                    matrix[constraintrow, 4 * iflag + 2] = -1
+                    matrix[constraintrow, 4 * iflag + 3] = -1
             if not isboundary:
                 constraintrow += 1
 

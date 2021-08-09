@@ -126,6 +126,22 @@ class RLC_model(RC_model, RL_model):
         return RL_model.compute_L(self)
 
 
+class Windkessel2(RC_model):
+    def __init__(self, portions, problem_data):
+        super().__init__(portions, problem_data)
+        return
+
+    def get_matrix_dot(self):
+        return np.array([[self.C * self.R, -self.C * self.R, 0.0, 0.0],
+                         [0.0, 0.0, 0.0, 0.0]])
+
+    def get_matrix(self):
+        return np.array([[-1.0, 1.0, self.R, 0.0],
+                         [0.0, 0.0, 1.0, -1.0]])
+
+    def get_constant(self):
+        return np.array([[0.0, 0.0]]).T
+
 # The constitutive equation is written in this form:
 #
 # A * [P_in, P_out, Q_in, Q_out]^T = B * [P_in, P_out, Q_in, Q_out]^T + C * f([P_in, P_out, Q_in, Q_out])^T + K

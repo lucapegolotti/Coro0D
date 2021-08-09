@@ -111,7 +111,7 @@ def main():
         print(f"Steady flow in portion {stenotic_portion}: {sol_steady[stenotic_portion * 4 + 3]}\n")
 
     # re-setting up the blocks, using the pre-computed steady solution, and solving the unsteady problem
-    blocks = create_physical_blocks(chunks, model_type='R_model', stenosis_model_type='YoungTsai',
+    blocks = create_physical_blocks(chunks, model_type='RL_model', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity, sol_steady=sol_steady)
     ode_system = ODESystem(blocks, connectivity, bcmanager)
     tma = BDF2(ode_system, connectivity, pd, sd, bcmanager)
