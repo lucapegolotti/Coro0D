@@ -40,9 +40,12 @@ class OutletBC:
         elif self.bc_type == "resistance":
             Ra = self.portion.compute_Ra() + self.portion.compute_Rv() + \
                  self.portion.compute_Ramicro() + self.portion.compute_Rvmicro()
+        elif self.bc_type == "zero":
+            Ra = 0
         else:
             raise NotImplementedError(self.bc_type + " bc not implemented")
 
+        print(Ra)
         # p0 - Ra * Q - K1 = 0
         matrix[row + 2, col + 0] = 1
         matrix[row + 2, col + 1] = 0
