@@ -97,6 +97,15 @@ class VesselPortion:
                     curradius = self.radii[curid] + (jarclength - curarclength) / (nextarclength - curarclength) * (nextradius - self.radii[curid])
                     self.radii[jcoord] = curradius
 
+        posindices = np.where(self.radii > 0)[0]
+        # extend radii also to the start and end
+        for i in range(0, int(posindices[0])):
+            self.radii[i] = self.radii[posindices[0]]
+
+        for j in range(int(posindices[-1])+1, self.radii.shape[0]):
+            self.radii[j] = self.radii[posindices[-1]]
+
+
     def limit_length(self, tol, length):
         narclengths = self.arclength.shape[0]
         caplength = length

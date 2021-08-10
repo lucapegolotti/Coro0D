@@ -16,7 +16,7 @@ from rc_calculator import RCCalculator
 from scipy.integrate import simps
 from output_writer import OutputWriter
 import tensorflow as tf
-
+import math
 
 class ProblemData:
     def __init__(self):
@@ -53,7 +53,7 @@ def run0D():
     fdr = "./"
     paths = parse_vessels(fdr, pd)
     chunks, bifurcations, connectivity = build_slices(paths, pd.tol, pd.maxlength)
-    plot_vessel_portions(chunks, bifurcations, connectivity)
+    # plot_vessel_portions(chunks, bifurcations, connectivity)
     coeff_resistance = 1.0
     coeff_capacitance = 1.0
     rc = RCCalculator(fdr, coronary, coeff_resistance, coeff_capacitance)
@@ -75,8 +75,10 @@ def run0D():
     #                 inlet_index = bcmanager.inletindex)
     return solutions, times, chunks
 
+
+
 class mul(tf.keras.layers.Layer):
-    def __init__(self, inputdim, stencil):
+    def __init__(self, inputdim, stencil, mins, maxs):
         super().__init__()
 
         self.dim = inputdim
@@ -104,19 +106,25 @@ class mul(tf.keras.layers.Layer):
         self.one[half] = 1
         self.one = tf.convert_to_tensor(self.one, dtype=tf.float32)
 
+        self.mins = tf.convert_to_tensor(mins[0:stencil],
+                                         dtype=tf.float32)
+        self.maxs = tf.convert_to_tensor(maxs[0:stencil],
+                                         dtype=tf.float32)
+        self.diff = tf.convert_to_tensor(maxs[0:stencil] - mins[0:stencil],
+                                         dtype=tf.float32)
+
     def call(self, inputs):
         A = tf.matmul(self.selector, inputs[0], transpose_b=True)
+        # rescale velocity to original range
+        A = tf.multiply(A, self.diff)
+        A = tf.add(A, self.mins)
         B = tf.matmul(self.expander, inputs[1], transpose_b=True)
+        print(B)
         C = tf.add(B, self.one)
         res = tf.matmul(A, C, transpose_a=True)
-        # print(A)
-        # print(inputs[0])
         return res
 
-def main():
-    solutions, times, chunks = run0D()
-
-    stencil = 5
+def generate_datasets(solutions, times, chunks, stencil):
     ghosts = int((stencil - 1)/2)
 
     # extract all the pressures
@@ -143,8 +151,7 @@ def main():
 
     for chunk in chunks:
         coords.append(chunk.coords[0,:])
-        # posindices = np.where(chunk.radii > 0)
-        radii = np.hstack((radii, chunk.radii[0]))
+        radii = np.hstack((radii, -1))
 
     # append also the end point
     coords.append(chunks[-1].coords[-1,:])
@@ -162,22 +169,22 @@ def main():
     X = []
     for i in range(inindex, finindex + 1):
         hs = []
-        rs = []
+        As = []
         for j in range(i-ghosts, i+ghosts):
-            rs.append(radii[j])
+            As.append(radii[j]**2 * math.pi)
             if (np.linalg.norm(coords[j]) < 1e-16 or
                 np.linalg.norm(coords[j + 1]) < 1e-16):
                 hs.append(0)
             else:
                 hs.append(np.linalg.norm(coords[j+1] - coords[j]))
-        rs.append(radii[i+ghosts])
+        As.append(radii[i+ghosts]**2 * math.pi)
 
         # we skip the first timestep because we don't have an initial condition
         for jtime in range(1,size2):
             x = ps[i-ghosts:i+ghosts+1,jtime]
             x = np.hstack((x,ps[i-ghosts:i+ghosts+1,jtime-1]))
             x = np.hstack((x,np.array(hs)))
-            x = np.hstack((x,np.array(rs)))
+            x = np.hstack((x,np.array(As)))
             X.append(x)
 
     X = np.array(X)
@@ -194,22 +201,36 @@ def main():
         Ms.append(M)
 
     Y = np.zeros((X.shape[0],1))
+    ms = np.array(ms).reshape(stencil * 4 - 1,1)
+    Ms = np.array(Ms).reshape(stencil * 4 - 1,1)
+    np.save("dataset/X.npy", X)
+    np.save("dataset/Y.npy", Y)
+    np.save("dataset/min.npy", ms)
+    np.save("dataset/Max.npy", Ms)
+    return X, Y, ms, Ms
+
+def main():
+    stencil = 5
+    solutions, times, chunks = run0D()
+    X, Y, ms, Ms = generate_datasets(solutions, times, chunks, stencil)
 
     inputdim = stencil * 4 - 1
-    inputs = tf.keras.Input(shape=(stencil * 4 - 1,))
+    inputs = tf.keras.Input(shape=(inputdim,))
     x = tf.keras.layers.Dense(64, activation='relu')(inputs)
     x = tf.keras.layers.Dense(32, activation='relu')(x)
-    x = tf.keras.layers.Dense(stencil-1)(x)
-    outputs = mul(inputdim, stencil)((inputs, x))
+    x = tf.keras.layers.Dense(stencil-1, name='coeffs')(x)
+    outputs = mul(inputdim, stencil, ms, Ms)((inputs, x))
 
     model = tf.keras.Model(inputs = inputs, outputs = outputs)
 
     model.compile(optimizer='adam',
               loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
               metrics=['mae'])
+    #         run_eagerly=None)
 
-    model.fit(X, Y, epochs=5, batch_size=1, validation_split=0.2)
+    model.fit(X, Y, epochs=30, batch_size=1, validation_split=0.2)
     model.save('saved_model/')
 
 if __name__ == "__main__":
+    tf.compat.v1.disable_eager_execution()
     main()
