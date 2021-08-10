@@ -7,8 +7,9 @@ from scipy.integrate import simps
 
 
 class DistalPressureGenerator:
-    def __init__(self, times, indexminima, folder, problem_data, coeff, shift):
+    def __init__(self, times, t0, indexminima, folder, problem_data, coeff, shift):
         self.times = times
+        self.t0 = t0
         self.indexminima = indexminima
         self.file = os.path.join(folder, os.path.normpath("Data/plv.dat"))
         self.problem_data = problem_data
@@ -79,12 +80,13 @@ class DistalPressureGenerator:
         return I / coeff
 
     def evaluate_ramp(self, time):
-        t0ramp = self.problem_data.t0ramp
-        t0 = self.problem_data.t0
+        Tramp = self.problem_data.Tramp
+        t0 = self.t0
+        t0ramp = t0 - Tramp
         target = splev(t0, self.myopressurespline, der=0)
         return target * (1.0 - math.cos((time - t0ramp) * math.pi / (t0 - t0ramp))) / 2.0
 
     def distal_pressure(self, time):
-        if time < self.problem_data.t0:
+        if time < self.t0:
             return self.evaluate_ramp(time)
         return splev(time, self.myopressurespline, der=0)

@@ -36,10 +36,10 @@ class ProblemData:
         self.deltat = 0.00025
         # initial time
         self.t0 = 0.0
-        # final time
+        # simulation duration
         self.T = 3.0
-        # ramp rime
-        self.t0ramp = -0.3
+        # ramp duration
+        self.Tramp = 0.3
         # index of the first minima to be considered
         self.starting_minima = 0
         # self length units of the geometry files
@@ -85,9 +85,10 @@ def main():
     show_stenoses_details(chunks, pd.tol)
 
     stenotic_portions = [23] if not pd.isHealthy else [25]  # TO BE SET MANUALLY
+    ffr_portions = [25]
 
-    coeff_resistance = 0.81
-    coeff_capacitance = 0.55
+    coeff_resistance = 0.695
+    coeff_capacitance = 0.65
     rc = RCCalculator(fdr, pd.side, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
@@ -98,8 +99,8 @@ def main():
                           outletbc_type="coronary",
                           folder=fdr,
                           problem_data=pd,
-                          distal_pressure_coeff=0.75,
-                          distal_pressure_shift=15)
+                          distal_pressure_coeff=0.8,
+                          distal_pressure_shift=10)
 
     # setting up the blocks and computing a steady solution
     blocks = create_physical_blocks(chunks, model_type='R_model', stenosis_model_type='YoungTsai',
@@ -117,34 +118,34 @@ def main():
     tma = BDF2(ode_system, connectivity, pd, sd, bcmanager)
     solutions, times = tma.run()
 
-    show_inlet_flow_vs_pressure(solutions, times, bcmanager, pd.t0, pd.T)
-    # show_animation(solutions, times, pd.t0, chunks, 'Q_in', resample=4,
-    #                inlet_index=bcmanager.inletindex)
-
-    # show_inlet_vs_distal_pressure(bcmanager, pd.t0, pd.T)
+    show_inlet_flow_vs_pressure(solutions, times, bcmanager)
+    # show_animation(solutions, times, bcmanager, chunks, 'Q_in', resample=4)
+    # show_inlet_vs_distal_pressure(bcmanager)
 
     for stenotic_portion in stenotic_portions:
-        plot_solution(solutions, times, pd.t0, pd.T, chunks, stenotic_portion, 'Q_out')
-        plot_FFR(solutions, times, pd.t0, pd.T, bcmanager, stenotic_portion, 'P_out')
+        plot_solution(solutions, times, bcmanager, chunks, stenotic_portion, 'Q_out')
+        plot_FFR(solutions, times, bcmanager, stenotic_portion, 'P_out')
 
-    positive_times = np.where(times > pd.t0)[0]
-    P_in = solutions[bcmanager.inletindex * 4 + 0, positive_times]
-    Q_in = solutions[bcmanager.inletindex * 4 + 2, positive_times]
+    heartbeats_times = np.where((times >= bcmanager.inletbc.t0_eff) & (times <= bcmanager.inletbc.T_eff))[0]
+    P_in = solutions[bcmanager.inletindex * 4 + 0, heartbeats_times]
+    Q_in = solutions[bcmanager.inletindex * 4 + 2, heartbeats_times]
     CO = np.loadtxt(os.path.join(fdr, os.path.normpath("Data/cardiac_output.txt")), ndmin=1)[0]
     CO *= (1000 / 60)  # conversion from L/min to mL/s
     CO *= 0.04  # 4% of flow goes in coronaries
     CO *= (0.7 if pd.side == "left" else 0.3 if pd.side == "right" else 0.0)
-    print("\nFlow = " + str(simps(Q_in, times[positive_times]) / (pd.T - pd.t0)) + " [mL/s]")
+    print("\nFlow = " + str(simps(Q_in, times[heartbeats_times]) / pd.T) + " [mL/s]")
     print("Target Flow = " + str(CO) + " [mL/s]")
-    print("Mean inlet pressure = " + str(simps(P_in, times[positive_times]) / 1333.2 / (pd.T - pd.t0)) + " [mmHg]")
+    print("Mean inlet pressure = " + str(simps(P_in, times[heartbeats_times]) / 1333.2 / pd.T) + " [mmHg]")
 
     ow = OutputWriter("Output", bcmanager, chunks, pd)
     ow.write_outlet_rc()
     npoints = 10001
-    ow.write_distal_pressure(pd, npoints)
-    ow.write_inlet_pressure(pd, npoints)
-    ow.write_inlet_outlets_flow_pressures(times, solutions, chunks, bcmanager)
-    ow.write_thickess_caps(paths)
+    ow.write_distal_pressure(npoints)
+    ow.write_inlet_pressure(npoints)
+    ow.write_inlet_outlets_flow_pressures(times, solutions)
+    ow.write_thickess_caps()
+    if not pd.isHealthy:
+        ow.write_ffr_pressures(times, solutions, stenotic_portions, ffr_portions, dt=0.01)
 
     plot_show()
 

@@ -33,6 +33,7 @@ class BCManager:
                                self.problem_data)
 
         self.distal_pressure_generator = DistalPressureGenerator(self.inletbc.times,
+                                                                 self.inletbc.t0_eff,
                                                                  self.inletbc.indices_minpressures,
                                                                  self.folder,
                                                                  self.problem_data,

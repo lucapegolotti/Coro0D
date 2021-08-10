@@ -23,7 +23,7 @@ class InletBC:
         if self.problem_data.use_inlet_pressure:
             samsize = 0.01
             self.pressure_values = []
-            self.times = [self.problem_data.t0 - samsize]
+            self.times = [-samsize]
             with open(self.file, newline='') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
                 for row in spamreader:
@@ -71,8 +71,9 @@ class InletBC:
             # import matplotlib.pyplot as plt
             # plt.figure()
             # ax = plt.axes()
-            # ax.plot(self.times, filtered_pressures)
-            # ax.plot(self.times[minima], self.pressure_values[minima], 'ro')
+            # ax.plot(self.times, filtered_pressures / 1333.22)
+            # ax.plot(self.times[minima], self.pressure_values[minima] / 1333.22, 'ro')
+            # ax.set_ylim([40, 160])
             # plt.show()
 
             if len(minima) <= self.problem_data.starting_minima:
@@ -81,11 +82,24 @@ class InletBC:
                                  f"exhibits only {len(minima)} minima, so it is not possible to start from the minima "
                                  f"number {self.problem_data.starting_minima}!")
 
-            print(f"Effective initial time: {minima[self.problem_data.starting_minima] * samsize} s\n")
+            self.t0_eff = self.times[minima[self.problem_data.starting_minima]]
+            self.T_eff = self.t0_eff + self.problem_data.T
+            shift = 0
+            while self.times[minima[self.problem_data.starting_minima + shift]] <= self.T_eff:
+                shift += 1
+            self.n_heartbeats = shift - 1
+            self.T_hb = self.times[minima[self.problem_data.starting_minima + self.n_heartbeats]]
+            self.HR = self.n_heartbeats / (self.T_hb - self.t0_eff) * 60.0
+            print(f"\n  TIMES SUMMARY  ")
+            print(f"Effective initial time: {self.t0_eff} s")
+            print(f"Effective final time: {self.T_eff} s")
+            print(f"Number of complete heartbeats: {self.n_heartbeats}")
+            print(f"Heart rate: {self.HR:.2f} bpm\n")
 
             self.pressure_values = self.pressure_values[minima[self.problem_data.starting_minima]:]
-            self.times = np.subtract(self.times[minima[self.problem_data.starting_minima]:],
-                                     self.times[minima[self.problem_data.starting_minima]])
+            self.times = self.times[minima[self.problem_data.starting_minima]:]
+            # self.times = np.subtract(self.times[minima[self.problem_data.starting_minima]:],
+            #                          self.times[minima[self.problem_data.starting_minima]])
 
             self.pressurespline = splrep(self.times, self.pressure_values)
             self.indices_minpressures = np.subtract(minima,
@@ -93,7 +107,7 @@ class InletBC:
 
             # file = open(self.MAP_file, "r")
             # self.MAP = float(file.readline()) * 1333.2
-            indices = [0, int((self.problem_data.T - self.problem_data.t0) / samsize)]
+            indices = [0, int(self.problem_data.T / samsize)]
             self.MAP = simps(self.pressure_values[indices[0]:indices[1]], self.times[indices[0]:indices[1]]) / \
                        (self.times[indices[1]] - self.times[indices[0]])
 
@@ -127,13 +141,14 @@ class InletBC:
         return
 
     def evaluate_ramp(self, time):
-        t0 = self.problem_data.t0
-        t0ramp = self.problem_data.t0ramp
+        Tramp = self.problem_data.Tramp
+        t0ramp = self.t0_eff - Tramp
+        t0 = self.t0_eff
         target = splev(t0, self.pressurespline, der=0)
-        return target * (1.0 - math.cos((time - t0ramp) * math.pi / (t0 - t0ramp))) / 2.0
+        return target * (1.0 - math.cos((time - t0ramp) / (t0 - t0ramp) * math.pi)) / 2.0
 
     def inlet_function(self, time):
-        if time < self.problem_data.t0:
+        if time < self.t0_eff:
             return self.evaluate_ramp(time)
         return splev(time, self.pressurespline, der=0)
 
@@ -179,7 +194,8 @@ class InletBC:
         minima = minima[valid_minima]
 
         # discarding minima occurring before t0 and after T
-        minima = minima[(minima >= problem_data.t0 / samsize) & (minima <= problem_data.T / samsize)]
+        minima = minima[(minima >= problem_data.t0 / samsize) &
+                        (minima <= (problem_data.t0 + problem_data.T) / samsize)]
         HR = len(minima) / ((minima[-1] - minima[0]) * samsize) * 60.0
 
         return HR

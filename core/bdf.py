@@ -11,9 +11,9 @@ class BDF:
         self.connectivity = connectivity
         self.use_inlet_pressure = problem_data.use_inlet_pressure
         self.deltat = problem_data.deltat
-        self.t0 = problem_data.t0
-        self.T = problem_data.T
-        self.t0ramp = problem_data.t0ramp
+        self.t0 = bc_manager.inletbc.t0_eff
+        self.T = bc_manager.inletbc.T_eff
+        self.Tramp = problem_data.Tramp
         self.bc_manager = bc_manager
         self.setup_system()
         self.solver = SystemSolver(tol=solver_data.tol,
@@ -41,7 +41,7 @@ class BDF:
 
     def run(self, times=None, old_solutions=None):
 
-        t = self.t0ramp if times is None else times[-1]
+        t = self.t0 - self.Tramp if times is None else times[-1]
         syssize = self.lhsmatrix.shape[0]
 
         times = [t] if times is None else times.tolist()
@@ -54,7 +54,10 @@ class BDF:
         while t < self.T:
             t += self.deltat
 
-            print(f"{self.name}: solving t = {t:.5f} s")
+            if t < self.t0:
+                print(f"{self.name}: solving ramp at t = {t:.5f} s")
+            else:
+                print(f"{self.name}: solving at t = {t:.5f} s")
 
             rhs = self.matrix_dot.dot(self.prev_solutions_contribution(prev_solutions))
             rhs += self.beta() * self.deltat * self.ode_system.evaluate_constant_term()
@@ -140,7 +143,7 @@ class BDF2(BDF):
         self.name = "BDF2"
 
         self.CN = CN(ode_system, connectivity, problem_data, solver_data, bc_manager)
-        self.CN.set_T(self.t0ramp + self.deltat)
+        self.CN.set_T(self.t0 - self.Tramp + self.deltat)
 
         return
 
@@ -170,9 +173,9 @@ class CN:
         self.connectivity = connectivity
         self.use_inlet_pressure = problem_data.use_inlet_pressure
         self.deltat = problem_data.deltat
-        self.t0 = problem_data.t0
-        self.T = problem_data.T
-        self.t0ramp = problem_data.t0ramp
+        self.t0 = bc_manager.inletbc.t0_eff
+        self.T = bc_manager.inletbc.T_eff
+        self.Tramp = problem_data.Tramp
         self.bc_manager = bc_manager
         self.setup_system()
         self.solver = SystemSolver(tol=solver_data.tol,
@@ -198,8 +201,7 @@ class CN:
         return
 
     def run(self):
-
-        t = self.t0ramp
+        t = self.t0 - self.Tramp
         times = [t]
         syssize = self.lhsmatrix.shape[0]
         prev_solution = np.zeros([syssize, 1])

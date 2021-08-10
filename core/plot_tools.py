@@ -96,7 +96,10 @@ def plot_bifurcations(bifurcations, connectivity, fig, ax):
     return
 
 
-def plot_solution(solutions, times, t0, T, portions, portion_index, variable_name):
+def plot_solution(solutions, times, BCmanager, portions, portion_index, variable_name):
+    t0 = BCmanager.inletbc.t0_eff
+    T = BCmanager.inletbc.T_eff
+
     fig = plt.figure(figsize=plt.figaspect(0.5))
     ax1 = fig.add_subplot(1, 2, 1, projection='3d')
     plot_vessel_portions_highlight(portions, portion_index, fig=fig, ax=ax1)
@@ -137,7 +140,7 @@ def plot_solution(solutions, times, t0, T, portions, portion_index, variable_nam
     return fig, ax1, ax2
 
 
-def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
+def plot_FFR(solutions, times, BCmanager, portion_index, variable_name):
     fig = plt.figure()
 
     if variable_name == 'P_in':
@@ -147,11 +150,16 @@ def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
     else:
         raise ValueError(f"Unknown variable name {variable_name} to evaluate the FFR")
 
+    t0 = BCmanager.inletbc.t0_eff
+    T = BCmanager.inletbc.T_eff
+    dt = times[1] - times[0]
+    index0 = np.where(np.abs(times - t0) < dt / 2)[0][0]
+    ffr = solutions[portion_index * 4 + variable_index, index0:] / \
+          solutions[BCmanager.inletindex * 4 + variable_index, index0:]
+
     ax = fig.add_subplot(1, 1, 1)
-    ffr = solutions[portion_index * 4 + variable_index, 1:] / \
-          solutions[BCmanager.inletindex * 4 + variable_index, 1:]
-    ax.plot(times[1:], ffr)
-    ax.plot(times[1:], np.mean(ffr)*np.ones_like(times[1:]), '-.', linewidth=2)
+    ax.plot(times[index0:], ffr)
+    ax.plot(times[index0:], np.mean(ffr)*np.ones_like(times[index0:]), '-.', linewidth=2)
     ax.set_title("FFR, portion: " + str(portion_index))
     ax.set_xlabel("time [s]")
     ax.set_ylabel("FFR")
@@ -163,15 +171,13 @@ def plot_FFR(solutions, times, t0, T, BCmanager, portion_index, variable_name):
     return fig, ax
 
 
-def show_animation(solutions, times, t0, portions, variable_name, resample, inlet_index=None):
+def show_animation(solutions, times, BCmanager, portions, variable_name, resample):
+    t0 = BCmanager.inletbc.t0_eff
+    inlet_index = BCmanager.inletindex
     nportions = len(portions)
-    if inlet_index is None:
-        fig = plt.figure()
-        ax1 = p3.Axes3D(fig)
-    else:
-        fig = plt.figure(figsize=plt.figaspect(0.5))
-        ax1 = fig.add_subplot(1, 2, 1, projection='3d')
 
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+    ax1 = fig.add_subplot(1, 2, 1, projection='3d')
     ax1.grid(False)
     ax1.axis('off')
 
@@ -179,7 +185,6 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
     indices = np.where(times >= t0)[0]
     times = times[indices]
     solutions = solutions[:nportions * 4, indices]
-
     times = times[::resample]
 
     variables = solutions[:4 * nportions, ::resample]
@@ -232,46 +237,37 @@ def show_animation(solutions, times, t0, portions, variable_name, resample, inle
     cbar = fig.colorbar(p, cax=cbaxes, shrink=0.7)
     cbar.set_label(variable_name + units, rotation=90, labelpad=20)
 
-    if inlet_index is None:
-        anim = animation.FuncAnimation(fig, update, N,
-                                       fargs=(ax1,
-                                              times,
-                                              selectvariables,
-                                              lines,
-                                              minv,
-                                              maxv,
-                                              timestamp),
-                                       interval=10,
-                                       blit=False)
-    else:
-        ax2 = fig.add_subplot(1, 2, 2)
-        ax2.plot(times, solutions[inlet_index * 4 + 0, ::resample] / 1333.2)
-        ax2.set_xlim([times[0], times[-1]])
-        ax2.set_xlabel('t [s]')
-        ax2.set_ylabel('P_in [mmHg]')
-        dot, = ax2.plot(times[0], solutions[inlet_index * 4 + 0, 0] / 1333.2, 'ro')
-        anim = animation.FuncAnimation(fig, update_dual, N,
-                                       fargs=(ax1, times,
-                                              selectvariables,
-                                              lines, minv,
-                                              maxv, timestamp,
-                                              dot,
-                                              solutions[inlet_index * 4 + 0, ::resample] / 1333.2),
-                                       interval=10,
-                                       blit=False)
-        plot_show()
-        # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax2.plot(times, solutions[inlet_index * 4 + 0, ::resample] / 1333.2)
+    ax2.set_xlim([times[0], times[-1]])
+    ax2.set_xlabel('t [s]')
+    ax2.set_ylabel('P_in [mmHg]')
+    dot, = ax2.plot(times[0], solutions[inlet_index * 4 + 0, 0] / 1333.2, 'ro')
+    anim = animation.FuncAnimation(fig, update_dual, N,
+                                   fargs=(ax1, times,
+                                          selectvariables,
+                                          lines, minv,
+                                          maxv, timestamp,
+                                          dot,
+                                          solutions[inlet_index * 4 + 0, ::resample] / 1333.2),
+                                   interval=10,
+                                   blit=False)
+    plot_show()
+    # anim.save('simulation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+
     return anim
 
 
-def show_inlet_vs_distal_pressure(bcmanager, t0, T):
+def show_inlet_vs_distal_pressure(BCmanager):
     plt.figure()
     ax = plt.axes()
-    times = bcmanager.inletbc.times
-    inpressures = bcmanager.inletbc.pressure_values / 1333.2
+    t0 = BCmanager.inletbc.t0_eff
+    T = BCmanager.inletbc.T_eff
+    times = BCmanager.inletbc.times
+    inpressures = BCmanager.inletbc.pressure_values / 1333.2
     dpressures = []
     for t in times:
-        dpressures.append(bcmanager.distal_pressure_generator.distal_pressure(t) / 1333.2)
+        dpressures.append(BCmanager.distal_pressure_generator.distal_pressure(t) / 1333.2)
 
     inpline, = ax.plot(times, inpressures)
     dpline, = ax.plot(times, np.array(dpressures), color='red', linestyle='dashed')
@@ -284,8 +280,11 @@ def show_inlet_vs_distal_pressure(bcmanager, t0, T):
     return
 
 
-def show_inlet_flow_vs_pressure(solutions, times, bc_manager, t0, T):
-    inlet_index = bc_manager.inletindex
+def show_inlet_flow_vs_pressure(solutions, times, BCmanager):
+    t0 = BCmanager.inletbc.t0_eff
+    T = BCmanager.inletbc.T_eff
+    inlet_index = BCmanager.inletindex
+
     plt.figure()
     ax = plt.axes()
     indices = np.where(np.logical_and(times >= t0, times <= T))
