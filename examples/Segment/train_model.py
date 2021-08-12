@@ -78,39 +78,39 @@ def run0D():
 
 
 class mul(tf.keras.layers.Layer):
-    def __init__(self, inputdim, stencil, mins, maxs):
+    def __init__(self, inputdim, stencil, mins, maxs, center):
         super().__init__()
 
         self.dim = inputdim
         self.stencil = stencil
-        self.selector = np.zeros(shape = (self.stencil, self.dim))
+        self.selector = np.zeros(shape = (self.stencil + 1, self.dim))
         for i in range(0, self.stencil):
-            self.selector[i,i] = -1
+            self.selector[i,i] = 1
 
+        print(self.selector)
         self.selector = tf.convert_to_tensor(self.selector, dtype=tf.float32)
 
-        self.expander = np.zeros(shape = (self.stencil, self.stencil - 1))
+        self.expander = np.zeros(shape = (self.stencil + 1, self.stencil))
 
-        half = int(np.floor((self.stencil - 1) / 2))
-        # top half
-        for i in range(0, half):
+        for i in range(0, center):
             self.expander[i,i] = 1
 
         # bottom half
-        for i in range(half, self.stencil - 1):
+        for i in range(center, self.stencil):
             self.expander[i+1,i] = 1
-
+        print(self.expander)
         self.expander = tf.convert_to_tensor(self.expander, dtype=tf.float32)
 
-        self.one = np.zeros(shape = (self.stencil, 1));
-        self.one[half] = 1
+        self.one = np.zeros(shape = (self.stencil + 1, 1));
+        self.one[center] = 1
         self.one = tf.convert_to_tensor(self.one, dtype=tf.float32)
-
-        self.mins = tf.convert_to_tensor(mins[0:stencil],
+        #                                                          this is to have 1 as last component
+        self.mins = tf.convert_to_tensor(np.hstack((mins[0:stencil].squeeze(),-1)),
                                          dtype=tf.float32)
-        self.maxs = tf.convert_to_tensor(maxs[0:stencil],
+        self.maxs = tf.convert_to_tensor(np.hstack((maxs[0:stencil].squeeze(),0)),
                                          dtype=tf.float32)
-        self.diff = tf.convert_to_tensor(maxs[0:stencil] - mins[0:stencil],
+        print(np.hstack((maxs[0:stencil].squeeze(),0)))
+        self.diff = tf.convert_to_tensor(np.hstack(((maxs[0:stencil] - mins[0:stencil]).squeeze(),0)),
                                          dtype=tf.float32)
 
     def call(self, inputs):
@@ -119,13 +119,12 @@ class mul(tf.keras.layers.Layer):
         A = tf.multiply(A, self.diff)
         A = tf.add(A, self.mins)
         B = tf.matmul(self.expander, inputs[1], transpose_b=True)
-        print(B)
         C = tf.add(B, self.one)
         res = tf.matmul(A, C, transpose_a=True)
         return res
 
 def generate_datasets(solutions, times, chunks, stencil):
-    ghosts = int((stencil - 1)/2)
+    half = int((stencil - 1)/2)
 
     # extract all the pressures
     ndomains = len(chunks)
@@ -133,104 +132,109 @@ def generate_datasets(solutions, times, chunks, stencil):
     ps = solutions[0::3,:]
     ps = ps[0:ndomains]
     ps = np.vstack((ps,solutions[3 * ndomains + 1,:]))
+    qs = solutions[2::3,:]
+    qs = ps[0:ndomains]
+    qs = np.vstack((qs,solutions[3 * ndomains + 2,:]))
+
+    nnodes = ps.shape[0]
 
     size1 = ps.shape[0]
     size2 = ps.shape[1]
 
-    # pad pressure
-    pad = np.zeros((ghosts, size2))
-    ps = np.vstack((pad,ps,pad))
-
     radii = np.zeros(shape=(0))
     coords = []
 
-    # add intial ghost nodes
-    for i in range(0, ghosts):
-        coords.append([0,0,0])
-        radii = np.hstack((radii, 0))
-
     for chunk in chunks:
         coords.append(chunk.coords[0,:])
-        radii = np.hstack((radii, -1))
+        radii = np.hstack((radii,chunk.radii[0]))
 
     # append also the end point
     coords.append(chunks[-1].coords[-1,:])
     radii = np.hstack((radii, chunks[-1].radii[-1]))
 
-    # add final ghost nodes
-    for i in range(0, ghosts):
-        coords.append([0,0,0])
-        radii = np.hstack((radii, 0))
+    Xs = {}
+    Ys = {}
+    mss = {}
+    Mss = {}
 
-    # build dataset. We sweep the nodes and add each stencil + size of the
-    # neighboring elements
-    inindex = ghosts
-    finindex = ghosts + ndomains
-    X = []
-    for i in range(inindex, finindex + 1):
-        hs = []
-        As = []
-        for j in range(i-ghosts, i+ghosts):
-            As.append(radii[j]**2 * math.pi)
-            if (np.linalg.norm(coords[j]) < 1e-16 or
-                np.linalg.norm(coords[j + 1]) < 1e-16):
-                hs.append(0)
-            else:
+    for stsize in range(half+1,stencil+1):
+        # build dataset. We sweep the nodes and add each stencil + size of the
+        # neighboring elements
+        X = []
+        for i in range(0, nnodes-stsize-1):
+            hs = []
+            As = []
+            for j in range(i, i+stsize-1):
+                As.append(radii[j])
                 hs.append(np.linalg.norm(coords[j+1] - coords[j]))
-        As.append(radii[i+ghosts]**2 * math.pi)
+            As.append(radii[i+stsize-1])
+            
+            # we skip the first timestep because we don't have an initial condition
+            for jtime in range(1,size2):
+                x = ps[i:i+stsize,jtime]
+                x = np.hstack((x,ps[i:i+stsize,jtime-1]))
+                x = np.hstack((x,qs[i:i+stsize,jtime]))
+                x = np.hstack((x,qs[i:i+stsize,jtime-1]))
+                x = np.hstack((x,np.array(hs)))
+                x = np.hstack((x,np.array(As)))
+                X.append(x)
+        X = np.array(X)
+        np.random.shuffle(X) # not sure if this is needed
 
-        # we skip the first timestep because we don't have an initial condition
-        for jtime in range(1,size2):
-            x = ps[i-ghosts:i+ghosts+1,jtime]
-            x = np.hstack((x,ps[i-ghosts:i+ghosts+1,jtime-1]))
-            x = np.hstack((x,np.array(hs)))
-            x = np.hstack((x,np.array(As)))
-            X.append(x)
+        ms = []
+        Ms = []
+        # normalization
+        for column in range(X.shape[1]):
+            m = np.min(X[:,column])
+            M = np.max(X[:,column])
+            X[:,column] = (X[:,column] - m) / (M - m)
+            ms.append(m)
+            Ms.append(M)
 
-    X = np.array(X)
-    np.random.shuffle(X) # not sure if this is needed
-
-    ms = []
-    Ms = []
-    # normalization
-    for column in range(X.shape[1]):
-        m = np.min(X[:,column])
-        M = np.max(X[:,column])
-        X[:,column] = (X[:,column] - m) / (M - m)
-        ms.append(m)
-        Ms.append(M)
-
-    Y = np.zeros((X.shape[0],1))
-    ms = np.array(ms).reshape(stencil * 4 - 1,1)
-    Ms = np.array(Ms).reshape(stencil * 4 - 1,1)
-    np.save("dataset/X.npy", X)
-    np.save("dataset/Y.npy", Y)
-    np.save("dataset/min.npy", ms)
-    np.save("dataset/Max.npy", Ms)
-    return X, Y, ms, Ms
+        Y = np.zeros((X.shape[0],1))
+        ms = np.array(ms).reshape(stsize * 6 - 1,1)
+        Ms = np.array(Ms).reshape(stsize * 6 - 1,1)
+        np.save("dataset/X_st" + str(stsize) + ".npy", X)
+        np.save("dataset/Y_st" + str(stsize) + ".npy", Y)
+        np.save("dataset/min_st" + str(stsize) + ".npy", ms)
+        np.save("dataset/Max_st" + str(stsize) + ".npy", Ms)
+        Xs[stsize] = X
+        Ys[stsize] = Y
+        mss[stsize] = ms
+        Mss[stsize] = Ms
+    return Xs, Ys, mss, Mss
 
 def main():
     stencil = 5
+    half = int((stencil - 1)/2)
+
     solutions, times, chunks = run0D()
-    X, Y, ms, Ms = generate_datasets(solutions, times, chunks, stencil)
+    Xs, Ys, ms, Ms = generate_datasets(solutions, times, chunks, stencil)
 
-    inputdim = stencil * 4 - 1
-    inputs = tf.keras.Input(shape=(inputdim,))
-    x = tf.keras.layers.Dense(64, activation='relu')(inputs)
-    x = tf.keras.layers.Dense(32, activation='relu')(x)
-    x = tf.keras.layers.Dense(stencil-1, name='coeffs')(x)
-    outputs = mul(inputdim, stencil, ms, Ms)((inputs, x))
+    for center in range(2, 3):
+        init = np.max((0,center-half))
+        end = np.min((stencil-1,center+half))
+        shift = 0
+        if (end == stencil-1):
+            shift = center+half - end
 
-    model = tf.keras.Model(inputs = inputs, outputs = outputs)
+        stsize = end - init + 1
+        inputdim = stsize * 6 - 1
+        inputs = tf.keras.Input(shape=(inputdim,))
+        x = tf.keras.layers.Dense(128, activation='relu')(inputs)
+        x = tf.keras.layers.Dense(64, activation='relu')(x)
+        x = tf.keras.layers.Dense(stsize, name='coeffs')(x)
+        outputs = mul(inputdim, stsize, ms[stsize], Ms[stsize], center - shift)((inputs, x))
 
-    model.compile(optimizer='adam',
-              loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
-              metrics=['mae'])
-    #         run_eagerly=None)
+        model = tf.keras.Model(inputs = inputs, outputs = outputs)
 
-    model.fit(X, Y, epochs=30, batch_size=1, validation_split=0.2)
-    model.save('saved_model/')
+        model.compile(optimizer='adam',
+                  loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
+                  metrics=['mae'])
+        #         run_eagerly=None)
+
+        model.fit(Xs[stsize], Ys[stsize], epochs=30, batch_size=1, validation_split=0.1)
+        model.save('saved_model/center' + str(center))
 
 if __name__ == "__main__":
-    tf.compat.v1.disable_eager_execution()
     main()

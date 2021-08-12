@@ -71,56 +71,40 @@ def create_structures():
 
     return chunks, bifurcations, connectivity, bcmanager
 
-def load_dataset():
-    X = np.load('dataset/X.npy')
-    Y = np.load('dataset/Y.npy')
-    ms = np.load('dataset/min.npy')
-    Ms = np.load('dataset/Max.npy')
+def load_datasets(stencil):
+    half = int((stencil - 1)/2)
 
-    # rescaled X
-    rX = np.copy(X)
-    for i in range(0, X.shape[1]):
-        rX[:,i] = ms[i] + rX[:,i] * (Ms[i] - ms[i])
+    X = {}
+    Y = {}
+    ms = {}
+    Ms = {}
+    for stsize in range(half+1, stencil + 1):
+        X[stsize] = np.load('dataset/X_st' + str(stsize) + '.npy')
+        Y[stsize] = np.load('dataset/Y_st' + str(stsize) + '.npy')
+        ms[stsize] = np.load('dataset/min_st' + str(stsize) + '.npy').squeeze()
+        Ms[stsize] = np.load('dataset/Max_st' + str(stsize) + '.npy').squeeze()
 
-    return X, Y, ms, Ms, rX
+        # # rescaled X
+        # rX_ = np.copy(X[stsize])
+        # for i in range(0, X[stsize].shape[1]):
+        #     rX[:,i] = (ms[stsize])[i] + (rX[stsize])[:,i] * ((Ms[stsize])[i] - (ms[stsize])[i])
+        #
+        # rX[stsize] = rX_
 
-def load_model():
-    original_model = tf.keras.models.load_model('saved_model/')
+    return X, Y, ms, Ms
 
-    layer_name = 'coeffs'
-    model = Model(inputs=original_model.input,
-                       outputs=original_model.get_layer(layer_name).output)
+def load_models(stencil):
+    models = {}
+    for i in range(0, stencil):
+        original_model = tf.keras.models.load_model('saved_model/center' + str(i))
 
+        layer_name = 'coeffs'
+        models[i] = Model(inputs=original_model.input,
+                          outputs=original_model.get_layer(layer_name).output)
 
-    # maybe check why this is not exactly the same
-    # ind = 10
-    # coeffs = coeffmodel(np.expand_dims(X[ind,:], axis=0)).numpy().squeeze()
-    # a = coeffs[0] * rX[ind,0] + coeffs[1] * rX[ind,1] + rX[ind,2] + coeffs[2] * rX[ind,3] + coeffs[3] * rX[ind,4]
-    # print(a)
-    # print(model(np.expand_dims(X[ind,:], axis=0)))
-
-    return model
+    return models
 
 def create_geometrical_vectors(chunks, stencil):
-    # ghosts = int((stencil - 1)/2)
-    #
-    # # add intial ghost nodes
-    # for i in range(0, ghosts):
-    #     coords.append([0,0,0])
-    #     radii = np.hstack((radii, 0))
-    #
-    # for chunk in chunks:
-    #     coords.append(chunk.coords[0,:])
-    #     radii = np.hstack((radii, -1))
-    #
-    # # append also the end point
-    # coords.append(chunks[-1].coords[-1,:])
-    # radii = np.hstack((radii, chunks[-1].radii[-1]))
-    #
-    # # add final ghost nodes
-    # for i in range(0, ghosts):
-    #     coords.append([0,0,0])
-    #     radii = np.hstack((radii, 0))
     nchunks = len(chunks)
     gvecs = []
 
@@ -130,98 +114,104 @@ def create_geometrical_vectors(chunks, stencil):
         radii = []
         cgvec = []
         for jc in range(ic - half, ic + half + 1):
-            if jc < 0 or jc >= nchunks + 1:
-                coords.append(np.array([0,0,0]))
-                radii.append(0)
-            elif jc < nchunks:
+            if jc >= 0 and jc < nchunks:
                 coords.append(np.array(chunks[jc].coords[0,:]))
                 radii.append(float(chunks[jc].radii[0,:]))
             elif jc == nchunks:
                 coords.append(np.array(chunks[jc-1].coords[-1,:]))
                 radii.append(float(chunks[jc-1].radii[-1,:]))
 
-        for jr in range(0, stencil - 1):
+        for jr in range(0, len(coords) - 1):
             if (np.linalg.norm(coords[jr+1]) > 0 and
                 np.linalg.norm(coords[jr]) > 0):
                 cgvec.append(np.linalg.norm(coords[jr+1] - coords[jr]))
             else:
                 cgvec.append(0)
         for radius in radii:
-            cgvec.append(radius**2 * math.pi)
+            cgvec.append(radius)
         gvecs.append(np.array(cgvec))
 
     return gvecs
 
-def assemble_matrix(sol, pastsol, gvecs, stencil, model, mins, maxs):
+def assemble_matrix(sol, pastsol, gvecs, stencil, models, mins, maxs, rhs, Q, Qm):
     N = sol.shape[0]
     A = np.zeros((N,N))
-
-    half = int(np.floor((stencil - 1)*0.5))
-
-    zeros = np.zeros((half,))
-    # pad sol and pastsol
-    sol = np.hstack((zeros,sol,zeros))
-    pastsol = np.hstack((zeros,pastsol,zeros))
-    for i in range(half, N + half):
-        actuali = i - half
-        x = np.hstack((sol[i-half:i+half+1],
-                       pastsol[i-half:i+half+1],
-                       gvecs[actuali]))
-        x = np.divide(x - mins,maxs - mins)
-        coefs = model(x.reshape((1,x.size))).numpy().squeeze()
-        count = 0
-        for j in range(actuali - half, actuali + half + 1):
-            if j < 0 or j >= N:
+    half = int((stencil-1)/2)
+   
+    for i in range(0, N):
+        if i != 0 and i != N-1:
+            init = int(np.max((0,i-half)))
+            end = int(np.min((N-1,i+half)))
+            stsize = end - init + 1
+            center = half
+            Qvec = np.ones((stsize,)) * Q
+            Qmvec= np.ones((stsize,)) * Qm
+            if (init == 0):
+                center = center - half + i
+            if (end == N-1):
+                center = center + (i + half - N + 1)
+            x = np.hstack((sol[init:end+1],
+                           pastsol[init:end+1],
+                           Qvec,
+                           Qmvec,
+                           gvecs[i]))
+            x = np.divide(x - mins[stsize],maxs[stsize] - mins[stsize])
+            coefs = models[center](x.reshape((1,x.size))).numpy().squeeze()
+            print(coefs)
+            print(stsize)
+            count = 0
+            for j in range(i - half, i + half + 1):
+                if j < 0 or j >= N:
+                    continue
+                if j >= 0 and j < i:
+                    A[i, j] = coefs[count]
+                elif j == i:
+                    A[i, j] = 1
+                elif j < N and j > i:
+                    A[i, j] = coefs[count-1]
                 count = count + 1
-                continue
-            if j >= 0 and j < actuali:
-                A[actuali, j] = coefs[count]
-            elif j == actuali:
-                A[actuali, j] = 1
-            elif j < N and j > actuali:
-                A[actuali, j] = coefs[count-1]
-            count = count + 1
+            rhs[i] = coefs[-1]
 
-    return A
+    return A, rhs
 
 def compute_jacobian(sol, pastsol, gvecs, stencil, model, mins, maxs, A):
-    # return A
-    N = sol.shape[0]
-    J = np.zeros((N,N))
-
-    half = int(np.floor((stencil - 1)*0.5))
-
-    zeros = np.zeros((half,))
-    # pad sol and pastsol
-    sol = np.hstack((zeros,sol,zeros))
-    pastsol = np.hstack((zeros,pastsol,zeros))
-    for i in range(half, N + half):
-        actuali = i - half
-        x = np.hstack((sol[i-half:i+half+1],
-                       pastsol[i-half:i+half+1],
-                       gvecs[actuali]))
-        x = np.divide(x - mins,maxs - mins)
-        xt = tf.convert_to_tensor(x.reshape((1,x.size)))
-        with tf.GradientTape() as g:
-            g.watch(xt)
-            y = model(xt)
-        grads = g.jacobian(y, xt).numpy().squeeze()[:,0:stencil]
-        jacbs = np.matmul(grads,x[0:stencil])
-
-        count = 0
-        for j in range(actuali - half, actuali + half + 1):
-            if j < 0 or j >= N:
-                count = count + 1
-                continue
-            if j >= 0 and j < actuali:
-                J[actuali, j] = jacbs[count]
-            elif j == actuali:
-                J[actuali, j] = 0
-            elif j < N and j > actuali:
-                J[actuali, j] = jacbs[count-1]
-            count = count + 1
-
-    return J + A
+    return A
+    # N = sol.shape[0]
+    # J = np.zeros((N,N))
+    #
+    # half = int(np.floor((stencil - 1)*0.5))
+    #
+    # zeros = np.zeros((half,))
+    # # pad sol and pastsol
+    # sol = np.hstack((zeros,sol,zeros))
+    # pastsol = np.hstack((zeros,pastsol,zeros))
+    # for i in range(half, N + half):
+    #     actuali = i - half
+    #     x = np.hstack((sol[i-half:i+half+1],
+    #                    pastsol[i-half:i+half+1],
+    #                    gvecs[actuali]))
+    #     x = np.divide(x - mins,maxs - mins)
+    #     xt = tf.convert_to_tensor(x.reshape((1,x.size)))
+    #     with tf.GradientTape() as g:
+    #         g.watch(xt)
+    #         y = model(xt)
+    #     grads = g.jacobian(y, xt).numpy().squeeze()[:,0:stencil]
+    #     jacbs = np.matmul(grads,x[0:stencil])
+    #
+    #     count = 0
+    #     for j in range(actuali - half, actuali + half + 1):
+    #         if j < 0 or j >= N:
+    #             count = count + 1
+    #             continue
+    #         if j >= 0 and j < actuali:
+    #             J[actuali, j] = jacbs[count]
+    #         elif j == actuali:
+    #             J[actuali, j] = 0
+    #         elif j < N and j > actuali:
+    #             J[actuali, j] = jacbs[count-1]
+    #         count = count + 1
+    #
+    # return J + A
 
 def run0D(chunks, bifurcations, connectivity, bcmanager):
     pd = ProblemData()
@@ -239,14 +229,12 @@ def main():
     stencil = 5
     chunks, bifurcations, connectivity, bcmanager = create_structures()
     exsol1, times, chunks = run0D(chunks, bifurcations, connectivity, bcmanager)
-    X, Y, ms, Ms, rX = load_dataset()
-    ms = ms.squeeze()
-    Ms = Ms.squeeze()
-    model = load_model()
+    X, Y, ms, Ms = load_datasets(stencil)
+    models = load_models(stencil)
     gvecs = create_geometrical_vectors(chunks, stencil)
     nchunks = len(chunks)
     exsol = exsol1[0::3,:]
-    exsol = exsol1[0:nchunks,:]
+    exsol = exsol[0:nchunks,:]
     exsol = np.vstack((exsol,exsol1[3 * nchunks + 1,:]))
 
     solutions = np.zeros((nchunks+1,1))
@@ -270,32 +258,39 @@ def main():
         sol = solutions[:,cur]
         while it < maxit:
             it = it + 1
-            A = assemble_matrix(sol, solutions[:,cur], gvecs, stencil, model, ms, Ms)
+            A, rhs = assemble_matrix(sol, solutions[:,cur], gvecs, stencil, models, ms, Ms, rhs, exsol[2,cur+1], exsol[2,cur])
             A[0,:] = A[0,:] * 0
             A[0,0] = 1
+            # print(A[1,:])
+            # print(A[2,:])
+            # A[1,:] = A[1,:] * 0
+            # A[1,1] = 1
+            # A[-2,:] = A[-2,:] * 0
+            # A[-2,-2] = 1
+            # print(A[-2,:])
             A[-1,:] = A[-1,:] * 0
             A[-1,-1] = 1
             bcmanager.inletbc.apply_bc_vector(rhs, t, 0)
+            # rhs[1] = exsol[1,cur+1]
+            # rhs[-2] = exsol[-2,cur+1]
             res = np.matmul(A,np.expand_dims(sol,axis=1)) - rhs
             err = np.linalg.norm(res)
             print('\terr = ' + str(err))
             if (err < tol):
                 break
 
-            J = compute_jacobian(sol, solutions[:,cur], gvecs, stencil, model, ms, Ms, A)
+            J = compute_jacobian(sol, solutions[:,cur], gvecs, stencil, models, ms, Ms, A)
 
             dsol = np.linalg.solve(J,res)
             sol = (np.expand_dims(sol,axis=1) - dsol).squeeze()
+        # A = assemble_matrix(exsol[], solutions[:,cur], gvecs, stencil, model, ms, Ms)
         print("dnn")
         print(sol)
         print("exact")
         print(exsol[:,cur+1])
-        print(sol.shape)
-        print(exsol.shape)
-        print(A[1,:])
-        print(A[2,:])
-        print(A[3,:])
-        # A = assemble_matrix(exsol[], solutions[:,cur], gvecs, stencil, model, ms, Ms)
+        plt.plot(sol)
+        plt.plot(exsol[:,cur+1])
+        plt.show()
         solutions = np.hstack((solutions,np.expand_dims(sol,axis=1)))
         cur = cur + 1
 
