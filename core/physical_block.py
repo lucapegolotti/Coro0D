@@ -20,6 +20,8 @@ class PhysicalBlock:
             self.model = RL_model(vessel_portion, problem_data)
         elif model_type == "RLC_model":
             self.model = RLC_model(vessel_portion, problem_data)
+        elif model_type == "RCL_model":
+            self.model = RCL_model(vessel_portion, problem_data)
         elif model_type == "Windkessel2":
             self.model = Windkessel2(vessel_portion, problem_data)
 

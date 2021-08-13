@@ -127,14 +127,31 @@ class OutputWriter:
 
     def write_thickess_caps(self):
         outfile = open(self.output_fdr + "/thickness.txt", "w")
+
+        radia_sum = 0
+        arclength_sum = 0
+
+        outfile.write("Data for variable thickness simulations\n")
         for portion in self.portions:
+            portion.compute_mean_radius()
             posindices = np.where(portion.radii > 0)
             posradii = portion.radii[posindices]
+            posarclength = portion.arclength[posindices]
+
+            cur_arclength = posarclength[-1] - posarclength[0]
+            radia_sum += (2 * portion.mean_radius * cur_arclength)
+            arclength_sum += cur_arclength
+
             curstr = portion.pathname + " "
-            # we consider 10% of the radius for the membrane thickness
+            # we consider 10% of the diameter for the membrane thickness
             curstr += str(2 * posradii[0] * 0.1) + " "
             curstr += str(2 * posradii[-1] * 0.1) + "\n"
             outfile.write(curstr)
+
+        avg_thickness = radia_sum / arclength_sum * 0.1
+        outfile.write("\nData for constant thickness simulation\n")
+        outfile.write(f"AVG {avg_thickness}\n")
+
         outfile.close()
 
         return

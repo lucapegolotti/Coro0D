@@ -7,7 +7,7 @@ from core.connectivity import *
 from core.plot_tools import *
 from core.physical_block import *
 from core.ode_system import ODESystem
-from core.bdf import BDF2
+from core.bdf import *
 from core.bcmanager import BCManager
 from core.rc_calculator import RCCalculator
 from scipy.integrate import simps

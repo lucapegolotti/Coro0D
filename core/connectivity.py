@@ -14,7 +14,14 @@ def build_slices(portions, problem_data):
                                                    threshold_length=problem_data.min_stenoses_length)
         else:
             stenoses = find_stenoses(portions, problem_data.stenoses)
-    breakpoints = np.vstack((stenoses, bifurcations)) if stenoses is not None else bifurcations
+    if bifurcations.shape[0] > 0 and stenoses is not None:
+        breakpoints = np.vstack((stenoses, bifurcations))
+    elif bifurcations.shape[0] > 0:
+        breakpoints = bifurcations
+    elif stenoses is not None:
+        breakpoints = stenoses
+    else:
+        breakpoints = np.array(0)
     breakpoints = simplify_bifurcations(breakpoints, problem_data.tol)
 
     for portion in portions:
@@ -116,6 +123,8 @@ def find_bifurcations(portions, tol):
 
 
 def simplify_bifurcations(bifurcations, tol):
+    if len(bifurcations.shape) == 1:
+        bifurcations = np.expand_dims(bifurcations, 0)
     nbifurcations = bifurcations.shape[0]
 
     indices = list(range(nbifurcations))

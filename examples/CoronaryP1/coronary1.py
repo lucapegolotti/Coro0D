@@ -8,7 +8,7 @@ from core.connectivity import *
 from core.plot_tools import *
 from core.physical_block import *
 from core.ode_system import ODESystem
-from core.bdf import BDF2
+from core.bdf import *
 from core.bcmanager import BCManager
 from core.rc_calculator import RCCalculator
 from core.output_writer import OutputWriter
@@ -92,7 +92,7 @@ def main():
     rc.assign_resistances_to_outlets(chunks, connectivity)
     rc.assign_capacitances_to_outlets(chunks, connectivity)
 
-    blocks = create_physical_blocks(chunks, model_type='RC_model', stenosis_model_type='YoungTsai',
+    blocks = create_physical_blocks(chunks, model_type='RL_model', stenosis_model_type='YoungTsai',
                                     problem_data=pd, folder=fdr, connectivity=connectivity)
     bcmanager = BCManager(chunks, connectivity,
                           inletbc_type="pressure",

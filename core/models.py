@@ -126,21 +126,34 @@ class RLC_model(RC_model, RL_model):
         return RL_model.compute_L(self)
 
 
+class RCL_model(RC_model, RL_model):
+    def __init__(self, portions, problem_data):
+        RC_model.__init__(self, portions, problem_data)
+        RL_model.__init__(self, portions, problem_data)
+        return
+
+    def compute_R(self):
+        return RC_model.compute_R(self)
+
+    def compute_C(self):
+        return RC_model.compute_C(self)
+
+    def compute_L(self):
+        return RL_model.compute_L(self)
+
+    def get_matrix_dot(self):
+        return np.array([[0.0, 0.0, 0.0, self.L],
+                         [self.C, 0.0, -self.R * self.C, 0.0]])
+
+
 class Windkessel2(RC_model):
     def __init__(self, portions, problem_data):
         super().__init__(portions, problem_data)
         return
 
     def get_matrix_dot(self):
-        return np.array([[self.C * self.R, -self.C * self.R, 0.0, 0.0],
+        return np.array([[-self.C * self.R, self.C * self.R, 0.0, 0.0],
                          [0.0, 0.0, 0.0, 0.0]])
-
-    def get_matrix(self):
-        return np.array([[-1.0, 1.0, self.R, 0.0],
-                         [0.0, 0.0, 1.0, -1.0]])
-
-    def get_constant(self):
-        return np.array([[0.0, 0.0]]).T
 
 # The constitutive equation is written in this form:
 #
@@ -233,7 +246,6 @@ class YoungTsai(ModelStenosis):
     def compute_R2(self):
         self.vessel_portion.compute_min_radius()
         Kt = 1.52
-        # Kt = 27.3 * 1e-16 * np.exp(34 * self.S) + 0.26 * np.exp(1.51 * self.S)
         self.R2 = float((Kt * self.problem_data.density) /
                         (2 * np.pi ** 2 * self.r0 ** 4) *
                         ((self.r0 / self.vessel_portion.min_radius) ** 2 - 1) ** 2)

@@ -59,15 +59,15 @@ class ODESystem:
         constraintrow = 2 * nblocks
         # add constraints
         for connectivity in self.connectivity:
-            # conservation of flow
+            # conservation of flow: total inflow equals total outflow at each block interface
             isboundary = True
             for iflag in range(nblocks):
-                # incoming flow
+                # outgoing flow
                 if connectivity[iflag] in {0.5, 1}:
                     isboundary = False
                     matrix[constraintrow, 4 * iflag + 2] = 1
-                # outgoing flow
-                if connectivity[iflag] in {-1, -0.5}:
+                # incoming flow
+                elif connectivity[iflag] in {-1, -0.5}:
                     isboundary = False
                     matrix[constraintrow, 4 * iflag + 3] = -1
             if not isboundary:
@@ -85,12 +85,14 @@ class ODESystem:
                 else:
                     # + 1 corresponds to outlet
                     matrix[constraintrow, 4 * indices[0] + 1] = 1
+
                 if connectivity[indices[i]] in {0.5, 1}:
                     # + 0 corresponds to inlet
                     matrix[constraintrow, 4 * indices[i] + 0] = -1
                 else:
                     # + 1 corresponds to outlet
                     matrix[constraintrow, 4 * indices[i] + 1] = -1
+
                 constraintrow += 1
 
         self.rowbcs = constraintrow
