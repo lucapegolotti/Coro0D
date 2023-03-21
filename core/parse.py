@@ -2,8 +2,8 @@ import os
 import re
 import numpy as np
 import xml.etree.ElementTree as ET
-from vessel_portion import VesselPortion
-from contour import Contour
+from core.vessel_portion import VesselPortion
+from core.contour import Contour
 
 
 def parse_vessels(fdr, problem_data):
@@ -89,22 +89,31 @@ def parse_single_path(namefile, pathname, coeff, inlet_name):
     xs = []
     ys = []
     zs = []
+    tangents = []
 
     for child in path_points:
         x = float(child[0].attrib['x']) * coeff
         y = float(child[0].attrib['y']) * coeff
         z = float(child[0].attrib['z']) * coeff
 
+        tangent = np.array([float(child[1].attrib['x']),
+                            float(child[1].attrib['y']),
+                            float(child[1].attrib['z'])])
+
         if not isReversed:
             xs.append(x)
             ys.append(y)
             zs.append(z)
+            tangents.append(tangent)
         else:
             xs.insert(0, x)
             ys.insert(0, y)
             zs.insert(0, z)
+            tangents.insert(0, tangent)
 
     single_path = VesselPortion(xs, ys, zs, pathname)
+    single_path.set_tangents(tangents)
+
     return single_path
 
 

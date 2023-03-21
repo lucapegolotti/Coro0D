@@ -17,6 +17,10 @@ class VesselPortion:
         self.compute_arclength()
         return
 
+    def set_tangents(self, tangents):
+        self.tangents = tangents
+        return
+
     def compute_arclength(self):
         ncoords = self.coords.shape[0]
         self.arclength = np.zeros([ncoords, 1])

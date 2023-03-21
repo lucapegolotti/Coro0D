@@ -42,20 +42,24 @@ def plot_vessel_portions(portions, bifurcations=None, connectivity=None, fig=Non
                                portions[i].coords[:, 1],
                                portions[i].coords[:, 2],
                                label=str(i),
-                               c=c))
+                               c=c, linewidth=2.5))
+        # hides the axes
+        ax.set_axis_off()
+
         ncoords = portions[i].coords.shape[0]
-        ax.text(portions[i].coords[int(ncoords / 2), 0],
-                portions[i].coords[int(ncoords / 2), 1],
-                portions[i].coords[int(ncoords / 2), 2],
-                str(i),
-                color='black',
-                fontsize=7)
+        shift = 0.075
+        # ax.text(portions[i].coords[int(ncoords / 2), 0] + shift,
+        #         portions[i].coords[int(ncoords / 2), 1] + shift,
+        #         portions[i].coords[int(ncoords / 2), 2] + shift,
+        #         str(i),
+        #         color='grey',
+        #         fontsize=8)
 
     if bifurcations is not None:
         plot_bifurcations(bifurcations, connectivity, fig, ax)
 
-    # if show_plot:
-    #     plot_show()
+    if show_plot:
+        plot_show()
 
     return lines
 
@@ -89,7 +93,7 @@ def plot_bifurcations(bifurcations, connectivity, fig, ax):
             elif np.where(connectivity[i, :] > 2)[0].shape[0] == 1:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='blue')
             elif np.where(np.abs(connectivity[i, :]) == 0.5)[0].shape[0] >= 1:
-                ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='yellow')
+                ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='orange')
             else:
                 ax.scatter3D(bifurcations[i, 0], bifurcations[i, 1], bifurcations[i, 2], color='green')
 
@@ -304,7 +308,7 @@ def show_inlet_flow_vs_pressure(solutions, times, BCmanager):
     ax.set_xlim([t0, T])
     ax.set_ylim([mflow * 0.9, Mflow * 1.1])
     ax.set_title("inlet flow vs pressure")
-    ax.set_xlabel('time [s]')
+    ax.set_xlabel('Time [s]')
     ax.set_ylabel('Q [mL/s]')
     ax.legend([fline, pline], ['Flow', 'Scaled pressure'])
 

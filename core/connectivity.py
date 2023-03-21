@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import linalg
+from scipy.integrate import simps
 
 
 # we need to look for the position of the bifurcations and stenoses
@@ -26,14 +27,14 @@ def build_slices(portions, problem_data):
 
     for portion in portions:
         curportions = portion.break_at_points(breakpoints, problem_data.tol)
-        identify_stenoses(curportions, stenoses, 1e-10)
+        identify_stenoses(curportions, stenoses, problem_data.tol/2)
         for (index, curportion) in enumerate(curportions):
             slicedportions, joints = curportion.limit_length(problem_data.tol, problem_data.maxlength)
 
             newportions += slicedportions
             breakpoints = np.vstack([breakpoints, joints]) if breakpoints.shape[0] > 0 else joints
 
-    identify_stenoses(newportions, stenoses, 1e-10)
+    identify_stenoses(newportions, stenoses, problem_data.tol/2)
     breakpoints = simplify_bifurcations(breakpoints, problem_data.tol)
     breakpoints, connectivity = build_connectivity(newportions, breakpoints,
                                                    problem_data.tol, problem_data.inlet_name)
@@ -212,17 +213,19 @@ def find_stenoses_automatically(portions, threshold=0.85, threshold_length=0.5):
 
         # loop over radii from window_len/2 to posindices[-1]-window_len/2
         M = np.ones(ncoords)
+        A = np.zeros(ncoords)
+        A0 = np.zeros(ncoords)
         for index in posindices:
             # compute reference radius and area
             r0 = np.polyval(coeffs, portion.arclength[index])
-            A0 = np.pi * r0**2
+            A0[index] = np.pi * r0**2
 
             # evaluate current radius and area
             r = portion.radii[index]
-            A = np.pi * r**2
+            A[index] = np.pi * r**2
 
             # evaluate current metric --> M = 1 - |A-A0| / A0
-            M[index] = (1.0 - np.abs(A-A0) / A0) if A < A0 else 1.0
+            M[index] = (1.0 - np.abs(A[index]-A0[index]) / A0[index]) if A[index] < A0[index] else 1.0
 
             # # STRATEGY 1
             # # if metric < threshold  --> act
@@ -284,9 +287,15 @@ def find_stenoses_automatically(portions, threshold=0.85, threshold_length=0.5):
                     arclength = np.sum([np.linalg.norm(portion.coords[j, :] - portion.coords[j-1, :])
                                         for j in range(start_idx+1, end_idx)])
 
-                    print(arclength)
+                    integrated_area = simps(A0[start_idx:end_idx],
+                                            portion.arclength[start_idx:end_idx, 0])
+                    Aref = integrated_area / (portion.arclength[end_idx] - portion.arclength[start_idx])
+                    severity = 1.0 - np.min(A[start_idx:end_idx] / Aref)
 
-                    if arclength >= threshold_length:
+                    print(f"Stenosis {int(len(cur_stenoses_points)/2)} --> "
+                          f"Length: {arclength}  -  Severity: {severity*100} %")
+
+                    if arclength >= threshold_length and severity > 1 - threshold:
                         cur_stenoses_points.append(portion.coords[start_idx, :])
                         cur_stenoses_points.append(portion.coords[end_idx, :])
 
@@ -321,11 +330,15 @@ def identify_stenoses(portions, stenoses, tol):
 
     if stenoses is not None:
         for portion in portions:
+            dist_start = np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :])
+                                 for i in range(0, stenoses.shape[0], 2)])
+            dist_end = np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :])
+                               for i in range(1, stenoses.shape[0], 2)])
 
-            if (np.min([np.linalg.norm(portion.coords[0, :] - stenoses[i, :])
-                        for i in range(0, stenoses.shape[0], 2)]) < tol) or \
-               (np.min([np.linalg.norm(portion.coords[-1, :] - stenoses[i, :])
-                        for i in range(1, stenoses.shape[0], 2)]) < tol):
+            if dist_start < tol or dist_end < tol:
+                print(portion.pathname)
+                print(dist_start)
+                print(dist_end)
                 portion.isStenotic = True
 
     return
