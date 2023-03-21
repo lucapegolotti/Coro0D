@@ -17,7 +17,7 @@ from core.output_writer import OutputWriter
 class ProblemData:
     def __init__(self):
         # tolerance to determine if two points are the same
-        self.tol = 0.4
+        self.tol = 0.5
         # maxlength of the single vessel portion
         self.maxlength = 4 * self.tol
         # density of blood
@@ -37,7 +37,7 @@ class ProblemData:
         # initial time
         self.t0 = 0.0
         # simulation duration
-        self.T = 1.0
+        self.T = 3.0
         # ramp duration
         self.Tramp = 0.3
         # index of the first minima to be considered
@@ -45,19 +45,17 @@ class ProblemData:
         # self length units of the geometry files
         self.units = "cm"
         # coronary side
-        self.side = "left"
+        self.side = "right"
         # run an healthy simulation (i.e. no stenotic branches)
         self.isHealthy = False
         # name of the inlet branch
-        self.inlet_name = 'LAD'
+        self.inlet_name = 'RCA'
         # array of positions of the stenoses
         self.stenoses = dict()
-        self.stenoses['LAD'] = [19, 20, 21]
-        self.stenoses['LCX'] = [12, 13, 14]
         # threshold of the metric to automatically detect stenoses
         self.threshold_metric = 0.80
         # minimal stenosis length
-        self.min_stenoses_length = 0.75
+        self.min_stenoses_length = 0.50
         # use automatic stenoses detection
         self.autodetect_stenoses = True
 
@@ -87,10 +85,10 @@ def main():
     plot_vessel_portions(chunks, bifurcations, connectivity, color="stenosis")
     show_stenoses_details(chunks, pd.tol)
 
-    stenotic_portions = [13, 25] if not pd.isHealthy else [22, 4]  # TO BE SET MANUALLY
-    ffr_portions = [16, 32]
+    stenotic_portions = [20, 23] if not pd.isHealthy else [20, 23]  # TO BE SET MANUALLY
+    ffr_portions = [20, 23]
 
-    coeff_resistance = 0.96
+    coeff_resistance = 0.99
     coeff_capacitance = 0.2
     rc = RCCalculator(fdr, pd.side, coeff_resistance, coeff_capacitance)
     rc.assign_resistances_to_outlets(chunks, connectivity)
@@ -101,7 +99,7 @@ def main():
                           outletbc_type="coronary",
                           folder=fdr,
                           problem_data=pd,
-                          distal_pressure_coeff=0.9,
+                          distal_pressure_coeff=0.8,
                           distal_pressure_shift=10)
 
     # setting up the blocks and computing a steady solution
